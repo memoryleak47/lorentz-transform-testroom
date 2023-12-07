@@ -1,0 +1,7 @@
+[[object]]
+lifetime = [0, 1]
+color = "red"
+velocity = [2, 3]
+t_offset = 0
+xy_offset = [0, 0]
+

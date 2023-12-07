@@ -1,31 +1,29 @@
 use serde::{Deserialize, Serialize};
+use std::fs::File;
+use std::io::Read;
 
 #[derive(Serialize, Deserialize)]
 struct Config {
-   ip: String,
-   port: Option<u16>,
-   keys: Keys,
+    object: Vec<Object>,
 }
 
 #[derive(Serialize, Deserialize)]
-struct Keys {
-   github: String,
-   travis: Option<String>,
+#[derive(Debug)]
+struct Object {
+    lifetime: [f64; 2],
+    color: String,
+    velocity: [f64; 2],
+    t_offset: f64,
+    xy_offset: [f64; 2],
 }
 
 fn main() {
-    let config: Config = toml::from_str(r#"
-       ip = '127.0.0.1'
+    let mut f = File::open("input.toml").unwrap();
+    let mut data = String::new();
+    f.read_to_string(&mut data).unwrap();
+    let config: Config = toml::from_str(&*data).unwrap();
 
-       [keys]
-       github = 'xxxxxxxxxxxxxxxxx'
-       travis = 'yyyyyyyyyyyyyyyyy'
-    "#).unwrap();
-
-    assert_eq!(config.ip, "127.0.0.1");
-    assert_eq!(config.port, None);
-    assert_eq!(config.keys.github, "xxxxxxxxxxxxxxxxx");
-    assert_eq!(config.keys.travis.as_ref().unwrap(), "yyyyyyyyyyyyyyyyy");
-
-    println!("Hello, world!");
+    for obj in config.object {
+        dbg!(obj);
+    }
 }

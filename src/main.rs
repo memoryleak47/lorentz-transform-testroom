@@ -28,8 +28,8 @@ const STEP_T: f64 = 0.01;
 fn get_color(s: &str) -> u32 {
     match s {
         "red" => 0xff0000,
-        "blue" => 0x00ff00,
-        "green" => 0x0000ff,
+        "blue" => 0x0000ff,
+        "green" => 0x00ff00,
         _ => panic!(),
     }
 }

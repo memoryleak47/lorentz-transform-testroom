@@ -4,4 +4,3 @@ color = "red"
 velocity = [20, 30]
 t_offset = 0
 xy_offset = [0, 0]
-

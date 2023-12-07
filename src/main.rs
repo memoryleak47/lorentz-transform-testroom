@@ -21,15 +21,24 @@ struct Object {
 const WIDTH: usize = 640;
 const HEIGHT: usize = 360;
 
+const MIN_T: f64 = 0.0;
+const MAX_T: f64 = 1.0;
+const STEP_T: f64 = 0.01;
+
+fn get_color(s: &str) -> u32 {
+    match s {
+        "red" => 0xff0000,
+        "blue" => 0x00ff00,
+        "green" => 0x0000ff,
+        _ => panic!(),
+    }
+}
+
 fn main() {
     let mut f = File::open("input.toml").unwrap();
     let mut data = String::new();
     f.read_to_string(&mut data).unwrap();
     let config: Config = toml::from_str(&*data).unwrap();
-
-    for obj in config.object {
-        dbg!(obj);
-    }
 
     let mut buffer: Vec<u32> = vec![0; WIDTH * HEIGHT];
 
@@ -43,13 +52,30 @@ fn main() {
         panic!("{}", e);
     });
 
-    // Limit to max ~60 fps update rate
     window.limit_update_rate(Some(std::time::Duration::from_micros(16600)));
 
-    while window.is_open() && !window.is_key_down(Key::Escape) {
-        for i in buffer.iter_mut() {
-            *i = 255 + (255 << 16) + (255 << 8); // write something more funny here!
+    let mut t = MIN_T;
+    while window.is_open() && !window.is_key_down(Key::Escape) && t < MAX_T {
+        buffer.iter_mut().for_each(|x| *x = 0);
+
+        for obj in &config.object {
+            if obj.lifetime[0] > t || obj.lifetime[1] < t { continue; }
+            let x = obj.xy_offset[0] + obj.velocity[0] * t;
+            let y = obj.xy_offset[1] + obj.velocity[1] * t;
+
+            let c = get_color(&obj.color);
+            for x_ in [-2.0, -1.0, 0.0, 1.0, 2.0] {
+                for y_ in [-2.0, -1.0, 0.0, 1.0, 2.0] {
+                    let x = x + x_;
+                    let y = y + y_;
+                    if x < 0.0 || x > WIDTH as f64 { continue; }
+                    if y < 0.0 || y > HEIGHT as f64 { continue; }
+                    buffer[x as usize + y as usize * WIDTH] = c;
+                }
+            }
         }
+
+        t += STEP_T;
 
         // We unwrap here as we want this code to exit if it fails. Real applications may want to handle this in a different way
         window

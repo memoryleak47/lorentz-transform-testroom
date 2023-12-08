@@ -24,8 +24,18 @@ impl Frame {
     }
 
     pub fn from_other_frame(&self, other: Frame, ev: Event, c: Option<f64>) -> Event {
-        let ev = add_offsets(other.xy_offset, other.t_offset, ev);
-        let ev = lorentz_sloped(other.velocity, ev, c);
+        let ev = other.to_main(ev, c);
+        let ev = self.from_main(ev, c);
+        ev
+    }
+
+    fn to_main(&self, ev: Event, c: Option<f64>) -> Event {
+        let ev = add_offsets(self.xy_offset, self.t_offset, ev);
+        let ev = lorentz_sloped(self.velocity, ev, c);
+        ev
+    }
+
+    fn from_main(&self, ev: Event, c: Option<f64>) -> Event {
         let ev = lorentz_sloped([-self.velocity[0], -self.velocity[1]], ev, c);
         let ev = sub_offsets(self.xy_offset, self.t_offset, ev);
         ev
@@ -56,12 +66,12 @@ fn rotate(alpha: f64, ev: Event) -> Event {
 }
 
 fn lorentz_sloped(velocity: [f64; 2], ev: Event, c: Option<f64>) -> Event {
-    let alpha = f64::atan2(velocity[0], velocity[1]);
+    let alpha = f64::atan2(velocity[1], velocity[0]);
     let len = f64::sqrt(sqr(velocity[0]) + sqr(velocity[1]));
 
-    let ev = rotate(alpha, ev);
-    let ev = lorentz_straight(len, ev, c);
     let ev = rotate(-alpha, ev);
+    let ev = lorentz_straight(-len, ev, c);
+    let ev = rotate(alpha, ev);
 
     ev
 }
@@ -74,7 +84,7 @@ fn lorentz_straight(velocity_x: f64, ev: Event, c: Option<f64>) -> Event {
     let x = gamma * (ev.xy[0] - velocity_x * ev.t);
     let y = ev.xy[1];
     let off = match c {
-        Some(c) => velocity_x * ev.xy[0] / c,
+        Some(c) => velocity_x * ev.xy[0] / sqr(c),
         None => 0.0,
     };
     let t = gamma * (ev.t - off);
@@ -110,8 +120,67 @@ mod tests {
 
     const EV1: Event = Event {
         xy: [2.4, 83.0],
-        t: -24.0,
+        t: 24.0,
     };
+
+    #[test]
+    fn to_main_without_c() {
+        for frame in [A, B, C] {
+            let ev = EV1;
+
+            let x = ev.xy[0] + ev.t * frame.velocity[0];
+            let y = ev.xy[1] + ev.t * frame.velocity[1];
+            let t = ev.t;
+
+            let correct_ev = Event {
+                xy: [x, y],
+                t,
+            };
+
+            let ev = frame.to_main(ev, None);
+            assert_close(ev, correct_ev);
+        }
+    }
+
+    #[test]
+    fn from_main_without_c() {
+        for frame in [A, B, C] {
+            let ev = EV1;
+
+            let x = ev.xy[0] - ev.t * frame.velocity[0];
+            let y = ev.xy[1] - ev.t * frame.velocity[1];
+            let t = ev.t;
+
+            let correct_ev = Event {
+                xy: [x, y],
+                t,
+            };
+
+            let ev = frame.from_main(ev, None);
+            assert_close(ev, correct_ev);
+        }
+    }
+
+    #[test]
+    fn transform_without_c() {
+        for src in [A, B, C] {
+            for dst in [A, B, C] {
+                let ev = EV1;
+
+                let x = ev.xy[0] + ev.t * (src.velocity[0] - dst.velocity[0]);
+                let y = ev.xy[1] + ev.t * (src.velocity[1] - dst.velocity[1]);
+                let t = ev.t;
+
+                let correct_ev = Event {
+                    xy: [x, y],
+                    t,
+                };
+
+                let ev = dst.from_other_frame(src, ev, None);
+                assert_close(ev, correct_ev);
+            }
+        }
+    }
 
     #[test]
     fn refl_test() {

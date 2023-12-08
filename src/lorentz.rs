@@ -1,3 +1,7 @@
+const C: f64 = 300_000.0;
+
+fn sqr(x: f64) -> f64 { x * x }
+
 // A Frame described relative to the implicit main frame.
 #[derive(Clone, Copy)]
 pub struct Frame {
@@ -27,11 +31,23 @@ fn sub_offsets(xy_offset: [f64; 2], t_offset: f64, ev: Event) -> Event {
 // returns `ev` but from b's perspective.
 pub fn lorentz(a: Frame, b: Frame, ev: Event) -> Event {
     let ev = add_offsets(a.xy_offset, a.t_offset, ev);
-    let ev = lorentz_impl(a.velocity, b.velocity, ev);
+    let ev = lorentz_sloped(a.velocity, ev);
+    let ev = lorentz_sloped([-b.velocity[0], -b.velocity[1]], ev);
     let ev = sub_offsets(b.xy_offset, b.t_offset, ev);
     ev
 }
 
-fn lorentz_impl(a_v: [f64; 2], b_v: [f64; 2], ev: Event) -> Event {
+fn lorentz_sloped(velocity: [f64; 2], ev: Event) -> Event {
     panic!()
+}
+
+fn lorentz_straight(velocity_x: f64, ev: Event) -> Event {
+    let gamma = 1.0 / (f64::sqrt(1.0 - sqr(velocity_x) / sqr(C)));
+    let x = gamma * (ev.xy[0] - velocity_x * ev.t);
+    let y = ev.xy[1];
+    let t = gamma * (ev.t - velocity_x * ev.xy[0] / sqr(C));
+    Event {
+        xy: [x, y],
+        t,
+    }
 }

@@ -1,6 +1,8 @@
 mod lorentz;
 use lorentz::*;
 
+mod stdin;
+
 use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::Read;
@@ -11,7 +13,8 @@ const HEIGHT: usize = 360;
 
 const MIN_T: f64 = 0.0;
 const MAX_T: f64 = 1.0;
-const STEP_T: f64 = 0.01;
+const STEP_T: f64 = 0.001;
+const C: f64 = 10.0;
 
 #[derive(Serialize, Deserialize)]
 struct Config {
@@ -31,9 +34,9 @@ struct Object {
 impl Object {
     fn frame(&self) -> Frame {
         Frame {
-            xy_offset: self.xy_offset,
+            xy_offset: [0.0, 0.0],
             velocity: self.velocity,
-            t_offset: self.t_offset,
+            t_offset: 0.0,
         }
     }
 }
@@ -66,11 +69,20 @@ fn main() {
     });
 
     window.limit_update_rate(Some(std::time::Duration::from_micros(16600)));
+    let stdin = stdin::mk_channel();
 
     let mut frame = Frame::main();
     let mut t = MIN_T;
     while window.is_open() && !window.is_key_down(Key::Escape) && t < MAX_T {
         buffer.iter_mut().for_each(|x| *x = 0);
+
+        if let Ok(line) = stdin.try_recv() {
+            if line.starts_with("set-frame ") {
+                let i = line["set-frame ".len() .. ].trim().parse::<usize>().unwrap();
+                frame = config.object[i].frame();
+                println!("frame set to object {}", i);
+            }
+        }
 
         for obj in &config.object {
             if obj.lifetime[0] > t || obj.lifetime[1] < t { continue; }
@@ -78,13 +90,17 @@ fn main() {
             let y = obj.xy_offset[1] + obj.velocity[1] * t;
 
             let c = get_color(&obj.color);
-            for x_ in [-2.0, -1.0, 0.0, 1.0, 2.0] {
-                for y_ in [-2.0, -1.0, 0.0, 1.0, 2.0] {
-                    let x = x + x_;
-                    let y = y + y_;
-                    if x < 0.0 || x > WIDTH as f64 { continue; }
-                    if y < 0.0 || y > HEIGHT as f64 { continue; }
-                    buffer[x as usize + y as usize * WIDTH] = c;
+            for x_ in -2..=2 {
+                for y_ in -2..=2 {
+                    let ev = Event {
+                        t,
+                        xy: [x + x_ as f64, y + y_ as f64],
+                    };
+                    let ev = frame.from_other_frame(Frame::main(), ev, Some(C));
+                    let ev = Frame::main().from_other_frame(frame, ev, None);
+                    if ev.xy[0] < 0.0 || ev.xy[0] > WIDTH as f64 { continue; }
+                    if ev.xy[1] < 0.0 || ev.xy[1] > HEIGHT as f64 { continue; }
+                    buffer[ev.xy[0] as usize + ev.xy[1] as usize * WIDTH] = c;
                 }
             }
         }

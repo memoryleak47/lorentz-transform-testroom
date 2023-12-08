@@ -62,6 +62,17 @@ fn find_stage(object: &Object, observer_frame: Frame, observer_t: f64, config: &
     return None;
 }
 
+fn raw_render_position(obj: &Object, observer_frame: Frame, t: f64, config: &Config) -> Option<[f64; 2]> {
+    let (_, start, end) = find_stage(obj, observer_frame, t, &config)?;
+
+    // d = 0, t = start.t
+    // d = 1, t = end.t
+    let d = (t - start[T]) / (end[T] - start[T]);
+    let x = (1.0 - d) * start[X] + d * end[X];
+    let y = (1.0 - d) * start[Y] + d * end[Y];
+    Some([x, y])
+}
+
 fn main() {
     let config = load_config();
     assert_eq!(config.object.iter().filter(|x| x.follow.is_some()).count(), 1);
@@ -85,7 +96,7 @@ fn main() {
     let mut observer_frame = frame_of_stage(&config.object[follow_idx], stage);
 
     // time within the observers frame.
-    let mut t = 0.0;
+    let mut t = observer_frame.from_other_frame(Frame::main(), config.object[follow_idx].path[stage], Some(config.c))[T];
 
     while window.is_open() && !window.is_key_down(Key::Escape) {
         buffer.iter_mut().for_each(|x| *x = 0);
@@ -94,23 +105,22 @@ fn main() {
         while observer_frame.from_other_frame(Frame::main(), config.object[follow_idx].path[stage+1], Some(config.c))[T] < t {
             stage += 1;
             if config.object[follow_idx].path.get(stage+1).is_none() {
-                panic!("*graceful shutdown*");
+                return;
             }
             observer_frame = frame_of_stage(&config.object[follow_idx], stage);
             // set time `t` to the starting point of the new stage.
             t = observer_frame.from_other_frame(Frame::main(), config.object[follow_idx].path[stage], Some(config.c))[T];
         }
 
+        let [focus_x, focus_y] = raw_render_position(&config.object[follow_idx], observer_frame, t, &config).unwrap();
+
         // render objects.
         for obj in &config.object {
-            let Some((_, start, end)) = find_stage(obj, observer_frame, t, &config) else { continue; };
-
-            // d = 0, t = start.t
-            // d = 1, t = end.t
-            let d = (t - start[T]) / (end[T] - start[T]);
-            let x = (1.0 - d) * start[X] + d * end[X];
-            let y = (1.0 - d) * start[Y] + d * end[Y];
+            let Some([x, y]) = raw_render_position(obj, observer_frame, t, &config) else { continue; };
             let c = get_color(&obj.color);
+
+            let x = x - focus_x + WIDTH as f64/2.0;
+            let y = y - focus_y + HEIGHT as f64/2.0;
 
             const R: i32 = 5;
             for x_ in -R..=R {

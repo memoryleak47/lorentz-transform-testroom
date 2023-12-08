@@ -1,9 +1,17 @@
 mod lorentz;
+use lorentz::*;
 
 use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::Read;
 use minifb::{Key, Window, WindowOptions};
+
+const WIDTH: usize = 640;
+const HEIGHT: usize = 360;
+
+const MIN_T: f64 = 0.0;
+const MAX_T: f64 = 1.0;
+const STEP_T: f64 = 0.01;
 
 #[derive(Serialize, Deserialize)]
 struct Config {
@@ -13,19 +21,22 @@ struct Config {
 #[derive(Serialize, Deserialize)]
 #[derive(Debug)]
 struct Object {
-    lifetime: [f64; 2],
+    lifetime: [f64; 2], // in main frame time, or local time?
     color: String,
     velocity: [f64; 2],
     t_offset: f64,
     xy_offset: [f64; 2],
 }
 
-const WIDTH: usize = 640;
-const HEIGHT: usize = 360;
-
-const MIN_T: f64 = 0.0;
-const MAX_T: f64 = 1.0;
-const STEP_T: f64 = 0.01;
+impl Object {
+    fn frame(&self) -> Frame {
+        Frame {
+            xy_offset: self.xy_offset,
+            velocity: self.velocity,
+            t_offset: self.t_offset,
+        }
+    }
+}
 
 fn get_color(s: &str) -> u32 {
     match s {
@@ -56,6 +67,7 @@ fn main() {
 
     window.limit_update_rate(Some(std::time::Duration::from_micros(16600)));
 
+    let mut frame = Frame::main();
     let mut t = MIN_T;
     while window.is_open() && !window.is_key_down(Key::Escape) && t < MAX_T {
         buffer.iter_mut().for_each(|x| *x = 0);

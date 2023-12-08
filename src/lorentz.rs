@@ -27,6 +27,18 @@ fn sub_offsets(xy_offset: [f64; 2], t_offset: f64, ev: Event) -> Event {
     add_offsets([-xy_offset[0], -xy_offset[1]], -t_offset, ev)
 }
 
+fn rotate(alpha: f64, ev: Event) -> Event {
+    let alpha_cos = alpha.cos();
+    let alpha_sin = alpha.sin();
+    let x = ev.xy[0] * alpha_cos - ev.xy[1] * alpha_sin;
+    let y = ev.xy[0] * alpha_sin + ev.xy[1] * alpha_cos;
+    let t = ev.t;
+    Event {
+        xy: [x, y],
+        t,
+    }
+}
+
 // Originally `ev` is given from a's perspective.
 // returns `ev` but from b's perspective.
 pub fn lorentz(a: Frame, b: Frame, ev: Event) -> Event {
@@ -38,7 +50,14 @@ pub fn lorentz(a: Frame, b: Frame, ev: Event) -> Event {
 }
 
 fn lorentz_sloped(velocity: [f64; 2], ev: Event) -> Event {
-    panic!()
+    let alpha = f64::atan2(velocity[0], velocity[1]);
+    let len = f64::sqrt(sqr(velocity[0]) + sqr(velocity[1]));
+
+    let ev = rotate(alpha, ev);
+    let ev = lorentz_straight(len, ev);
+    let ev = rotate(-alpha, ev);
+
+    ev
 }
 
 fn lorentz_straight(velocity_x: f64, ev: Event) -> Event {

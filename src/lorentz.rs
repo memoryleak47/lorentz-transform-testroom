@@ -1,5 +1,3 @@
-use serde::*;
-
 fn sqr(x: f64) -> f64 { x * x }
 
 // A Frame described relative to the implicit main frame with velocity = [0, 0].
@@ -9,12 +7,10 @@ pub struct Frame {
     pub velocity: [f64; 2],
 }
 
-#[derive(Clone, Copy, PartialEq, Debug)]
-#[derive(Serialize, Deserialize)]
-pub struct Event {
-    pub xy: [f64; 2],
-    pub t: f64,
-}
+pub const X: usize = 0;
+pub const Y: usize = 1;
+pub const T: usize = 2;
+pub type Event = [f64; 3];
 
 impl Frame {
     pub const fn main() -> Frame {
@@ -37,13 +33,10 @@ impl Frame {
 fn rotate(alpha: f64, ev: Event) -> Event {
     let alpha_cos = alpha.cos();
     let alpha_sin = alpha.sin();
-    let x = ev.xy[0] * alpha_cos - ev.xy[1] * alpha_sin;
-    let y = ev.xy[0] * alpha_sin + ev.xy[1] * alpha_cos;
-    let t = ev.t;
-    Event {
-        xy: [x, y],
-        t,
-    }
+    let x = ev[X] * alpha_cos - ev[Y] * alpha_sin;
+    let y = ev[X] * alpha_sin + ev[Y] * alpha_cos;
+    let t = ev[T];
+    [x, y, t]
 }
 
 fn lorentz_sloped(velocity: [f64; 2], ev: Event, c: Option<f64>) -> Event {
@@ -62,17 +55,14 @@ fn lorentz_straight(velocity_x: f64, ev: Event, c: Option<f64>) -> Event {
         Some(c) => 1.0 / f64::sqrt(1.0 - sqr(velocity_x) / sqr(c)),
         None => 1.0,
     };
-    let x = gamma * (ev.xy[0] - velocity_x * ev.t);
-    let y = ev.xy[1];
+    let x = gamma * (ev[X] - velocity_x * ev[T]);
+    let y = ev[Y];
     let off = match c {
-        Some(c) => velocity_x * ev.xy[0] / sqr(c),
+        Some(c) => velocity_x * ev[X] / sqr(c),
         None => 0.0,
     };
-    let t = gamma * (ev.t - off);
-    Event {
-        xy: [x, y],
-        t,
-    }
+    let t = gamma * (ev[T] - off);
+    [x, y, t]
 }
 
 #[cfg(test)]
@@ -81,9 +71,9 @@ mod tests {
 
     fn assert_close(ev1: Event, ev2: Event) {
         const T: f64 = 1e-5;
-        assert!((ev1.xy[0] - ev2.xy[0]).abs() <= T, "x error: {} vs. {}", ev1.xy[0], ev2.xy[0]);
-        assert!((ev1.xy[1] - ev2.xy[1]).abs() <= T, "y error: {} vs. {}", ev1.xy[1], ev2.xy[1]);
-        assert!((ev1.t - ev2.t).abs() <= T, "t error: {} vs. {}", ev1.t, ev2.t);
+        assert!((ev1[X] - ev2[X]).abs() <= T, "x error: {} vs. {}", ev1[X], ev2[X]);
+        assert!((ev1[Y] - ev2[Y]).abs() <= T, "y error: {} vs. {}", ev1[Y], ev2[Y]);
+        assert!((ev1[T] - ev2[T]).abs() <= T, "t error: {} vs. {}", ev1[T], ev2[T]);
     }
 
     const A: Frame = Frame::main();
@@ -95,10 +85,7 @@ mod tests {
         velocity: [0.0, 30.0],
     };
 
-    const EV1: Event = Event {
-        xy: [2.4, 83.0],
-        t: 24.0,
-    };
+    const EV1: Event = [2.4, 83.0, 24.0];
 
     #[test]
     fn transform_without_c() {
@@ -106,14 +93,10 @@ mod tests {
             for dst in [A, B, C] {
                 let ev = EV1;
 
-                let x = ev.xy[0] + ev.t * (src.velocity[0] - dst.velocity[0]);
-                let y = ev.xy[1] + ev.t * (src.velocity[1] - dst.velocity[1]);
-                let t = ev.t;
-
-                let correct_ev = Event {
-                    xy: [x, y],
-                    t,
-                };
+                let x = ev[X] + ev.t * (src.velocity[0] - dst.velocity[0]);
+                let y = ev[Y] + ev.t * (src.velocity[1] - dst.velocity[1]);
+                let t = ev[T];
+                let correct_ev = [x, y, t];
 
                 let ev = dst.from_other_frame(src, ev, None);
                 assert_close(ev, correct_ev);

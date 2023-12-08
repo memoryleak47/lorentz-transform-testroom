@@ -3,21 +3,10 @@ observer_velocity = [-20, 0]
 
 [[object]]
 color = "red"
-[object.start]
-t = 1
-xy = [100, 100]
-
-[object.end]
-t = 2
-xy = [100, 100]
-
+start = [100, 100, 1]
+end = [100, 100, 2]
 
 [[object]]
 color = "blue"
-[object.start]
-t = 1
-xy = [200, 200]
-
-[object.end]
-t = 2
-xy = [200, 200]
+start = [200, 200, 1]
+end = [200, 200, 2]

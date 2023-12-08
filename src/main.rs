@@ -73,13 +73,13 @@ fn main() {
             let start = observer_frame.from_other_frame(Frame::main(), obj.start, Some(config.c));
             let end = observer_frame.from_other_frame(Frame::main(), obj.end, Some(config.c));
 
-            if start.t > t || end.t < t { continue; }
+            if start[T] > t || end[T] < t { continue; }
 
             // d = 0, t = start.t
             // d = 1, t = end.t
-            let d = (t - start.t) / (end.t - start.t);
-            let x = (1.0 - d) * start.xy[0] + d * end.xy[0];
-            let y = (1.0 - d) * start.xy[1] + d * end.xy[1];
+            let d = (t - start[T]) / (end[T] - start[T]);
+            let x = (1.0 - d) * start[X] + d * end[X];
+            let y = (1.0 - d) * start[Y] + d * end[Y];
             let c = get_color(&obj.color);
 
             const R: i32 = 5;

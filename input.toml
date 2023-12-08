@@ -6,7 +6,7 @@ xy_offset = [100, 100]
 
 [[object]]
 lifetime = [0, 10]
-color = "red"
+color = "violet"
 velocity = [-90, 0]
 xy_offset = [100, 100]
 
@@ -27,24 +27,24 @@ xy_offset = [100, 100]
 
 [[object]]
 lifetime = [0, 10]
-color = "green"
+color = "yellow"
 velocity = [0, 0]
 xy_offset = [300, 300]
 
 [[object]]
 lifetime = [0, 10]
-color = "green"
+color = "yellow"
 velocity = [0, 0]
 xy_offset = [100, 300]
 
 [[object]]
 lifetime = [0, 10]
-color = "green"
+color = "yellow"
 velocity = [0, 0]
 xy_offset = [100, 100]
 
 [[object]]
 lifetime = [0, 10]
-color = "green"
+color = "yellow"
 velocity = [0, 0]
 xy_offset = [300, 100]

@@ -43,6 +43,8 @@ fn get_color(s: &str) -> u32 {
         "red" => 0xff0000,
         "blue" => 0x0000ff,
         "green" => 0x00ff00,
+        "yellow" => 0xffff00,
+        "violet" => 0xff00ff,
         _ => panic!(),
     }
 }

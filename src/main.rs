@@ -96,10 +96,10 @@ impl Ctxt {
 
             // consider switching stages.
             while self.main_to_observer(self.follow_obj.path[self.stage+1])[T] < self.t {
-                self.set_stage(self.stage + 1);
-                if self.follow_obj.path.get(self.stage+1).is_none() {
+                if self.follow_obj.path.get(self.stage+2).is_none() {
                     return;
                 }
+                self.set_stage(self.stage + 1);
             }
 
             let [focus_x, focus_y] = self.raw_render_position(&self.follow_obj).unwrap();

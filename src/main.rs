@@ -24,11 +24,10 @@ struct Config {
 #[derive(Serialize, Deserialize)]
 #[derive(Debug)]
 struct Object {
-    lifetime: [f64; 2], // in main frame time, or local time?
+    lifetime: [f64; 2], // given in `main-frame` time.
     color: String,
     velocity: [f64; 2],
-    t_offset: f64,
-    xy_offset: [f64; 2],
+    xy_offset: [f64; 2], // The position of `self` during the big bang.
 }
 
 impl Object {
@@ -48,11 +47,16 @@ fn get_color(s: &str) -> u32 {
     }
 }
 
-fn main() {
+fn load_config() -> Config {
     let mut f = File::open("input.toml").unwrap();
     let mut data = String::new();
     f.read_to_string(&mut data).unwrap();
-    let config: Config = toml::from_str(&*data).unwrap();
+
+    toml::from_str(&*data).unwrap()
+}
+
+fn main() {
+    let config = load_config();
 
     let mut buffer: Vec<u32> = vec![0; WIDTH * HEIGHT];
 
@@ -70,7 +74,10 @@ fn main() {
     let stdin = stdin::mk_channel();
 
     let mut frame = Frame::main();
+
+    // `main-frame` time.
     let mut t = MIN_T;
+
     while window.is_open() && !window.is_key_down(Key::Escape) && t < MAX_T {
         buffer.iter_mut().for_each(|x| *x = 0);
 

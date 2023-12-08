@@ -1,16 +1,21 @@
 [[object]]
 lifetime = [0, 1]
 color = "red"
-velocity = [80, 0]
-t_offset = 0
+velocity = [90, 0]
 xy_offset = [100, 100]
 
 [[object]]
 lifetime = [0, 1]
 color = "blue"
 velocity = [0, 30]
-t_offset = 0
 xy_offset = [100, 100]
+
+[[object]]
+lifetime = [0, 1]
+color = "green"
+velocity = [65, 65]
+xy_offset = [100, 100]
+
 
 ############# background
 
@@ -18,26 +23,22 @@ xy_offset = [100, 100]
 lifetime = [0, 1]
 color = "green"
 velocity = [0, 0]
-t_offset = 0
 xy_offset = [300, 300]
 
 [[object]]
 lifetime = [0, 1]
 color = "green"
 velocity = [0, 0]
-t_offset = 0
 xy_offset = [100, 300]
 
 [[object]]
 lifetime = [0, 1]
 color = "green"
 velocity = [0, 0]
-t_offset = 0
 xy_offset = [100, 100]
 
 [[object]]
 lifetime = [0, 1]
 color = "green"
 velocity = [0, 0]
-t_offset = 0
 xy_offset = [300, 100]

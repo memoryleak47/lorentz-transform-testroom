@@ -21,9 +21,8 @@ struct Config {
 #[derive(Serialize, Deserialize)]
 #[derive(Debug)]
 struct Object {
-    start: Event,
-    end: Event,
     color: String,
+    path: Vec<Event>,
 }
 
 fn get_color(s: &str) -> u32 {
@@ -70,10 +69,16 @@ fn main() {
         buffer.iter_mut().for_each(|x| *x = 0);
 
         for obj in &config.object {
-            let start = observer_frame.from_other_frame(Frame::main(), obj.start, Some(config.c));
-            let end = observer_frame.from_other_frame(Frame::main(), obj.end, Some(config.c));
-
-            if start[T] > t || end[T] < t { continue; }
+            let current_stage = || {
+                let evs: Vec<Event> = obj.path.iter().map(|ev| observer_frame.from_other_frame(Frame::main(), *ev, Some(config.c))).collect();
+                for i in 0..evs.len()-1 {
+                    if evs[i][T] <= t && t < evs[i+1][T] {
+                        return Some((evs[i], evs[i+1]));
+                    }
+                }
+                return None;
+            };
+            let Some((start, end)) = current_stage() else { continue; };
 
             // d = 0, t = start.t
             // d = 1, t = end.t

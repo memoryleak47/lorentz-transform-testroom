@@ -10,10 +10,10 @@ const WIDTH: usize = 1800;
 const HEIGHT: usize = 1200;
 
 const STEP_T: f64 = 0.01;
-const C: f64 = 100.0;
 
 #[derive(Serialize, Deserialize)]
 struct Config {
+    c: f64,
     observer_velocity: [f64; 2],
     object: Vec<Object>,
 }
@@ -70,8 +70,8 @@ fn main() {
         buffer.iter_mut().for_each(|x| *x = 0);
 
         for obj in &config.object {
-            let start = observer_frame.from_other_frame(Frame::main(), obj.start, Some(C));
-            let end = observer_frame.from_other_frame(Frame::main(), obj.end, Some(C));
+            let start = observer_frame.from_other_frame(Frame::main(), obj.start, Some(config.c));
+            let end = observer_frame.from_other_frame(Frame::main(), obj.end, Some(config.c));
 
             if start.t > t || end.t < t { continue; }
 

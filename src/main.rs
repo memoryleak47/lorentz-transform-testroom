@@ -14,7 +14,7 @@ const HEIGHT: usize = 360;
 const MIN_T: f64 = 0.0;
 const MAX_T: f64 = 1.0;
 const STEP_T: f64 = 0.001;
-const C: f64 = 10000.0 / 4.0;
+const C: f64 = 100.0;
 
 #[derive(Serialize, Deserialize)]
 struct Config {
@@ -78,9 +78,15 @@ fn main() {
 
         if let Ok(line) = stdin.try_recv() {
             if line.starts_with("set-frame ") {
-                let i = line["set-frame ".len() .. ].trim().parse::<usize>().unwrap();
-                frame = config.object[i].frame();
-                println!("frame set to object {}", i);
+                let arg = line["set-frame ".len() .. ].trim();
+                if arg == "main" {
+                    frame = Frame::main();
+                    println!("frame set to main frame");
+                } else {
+                    let i = arg.parse::<usize>().unwrap();
+                    frame = config.object[i].frame();
+                    println!("frame set to object {}", i);
+                }
             }
         }
 

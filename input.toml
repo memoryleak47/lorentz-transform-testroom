@@ -1,7 +1,7 @@
 [[object]]
 lifetime = [0, 1]
 color = "red"
-velocity = [30, 0]
+velocity = [80, 0]
 t_offset = 0
 xy_offset = [100, 100]
 

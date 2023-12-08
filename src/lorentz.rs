@@ -1,5 +1,3 @@
-const C: f64 = 300_000.0;
-
 fn sqr(x: f64) -> f64 { x * x }
 
 // A Frame described relative to the implicit main frame.
@@ -14,6 +12,24 @@ pub struct Frame {
 pub struct Event {
     pub xy: [f64; 2],
     pub t: f64,
+}
+
+impl Frame {
+    pub fn main() -> Frame {
+        Frame {
+            velocity: [0.0, 0.0],
+            t_offset: 0.0,
+            xy_offset: [0.0, 0.0],
+        }
+    }
+
+    pub fn from_other_frame(&self, other: Frame, ev: Event, c: Option<f64>) -> Event {
+        let ev = add_offsets(other.xy_offset, other.t_offset, ev);
+        let ev = lorentz_sloped(other.velocity, ev, c);
+        let ev = lorentz_sloped([-self.velocity[0], -self.velocity[1]], ev, c);
+        let ev = sub_offsets(self.xy_offset, self.t_offset, ev);
+        ev
+    }
 }
 
 fn add_offsets(xy_offset: [f64; 2], t_offset: f64, ev: Event) -> Event {
@@ -39,32 +55,29 @@ fn rotate(alpha: f64, ev: Event) -> Event {
     }
 }
 
-// Originally `ev` is given from a's perspective.
-// returns `ev` but from b's perspective.
-pub fn lorentz(a: Frame, b: Frame, ev: Event) -> Event {
-    let ev = add_offsets(a.xy_offset, a.t_offset, ev);
-    let ev = lorentz_sloped(a.velocity, ev);
-    let ev = lorentz_sloped([-b.velocity[0], -b.velocity[1]], ev);
-    let ev = sub_offsets(b.xy_offset, b.t_offset, ev);
-    ev
-}
-
-fn lorentz_sloped(velocity: [f64; 2], ev: Event) -> Event {
+fn lorentz_sloped(velocity: [f64; 2], ev: Event, c: Option<f64>) -> Event {
     let alpha = f64::atan2(velocity[0], velocity[1]);
     let len = f64::sqrt(sqr(velocity[0]) + sqr(velocity[1]));
 
     let ev = rotate(alpha, ev);
-    let ev = lorentz_straight(len, ev);
+    let ev = lorentz_straight(len, ev, c);
     let ev = rotate(-alpha, ev);
 
     ev
 }
 
-fn lorentz_straight(velocity_x: f64, ev: Event) -> Event {
-    let gamma = 1.0 / (f64::sqrt(1.0 - sqr(velocity_x) / sqr(C)));
+fn lorentz_straight(velocity_x: f64, ev: Event, c: Option<f64>) -> Event {
+    let gamma = match c {
+        Some(c) => 1.0 / f64::sqrt(1.0 - sqr(velocity_x) / sqr(c)),
+        None => 1.0,
+    };
     let x = gamma * (ev.xy[0] - velocity_x * ev.t);
     let y = ev.xy[1];
-    let t = gamma * (ev.t - velocity_x * ev.xy[0] / sqr(C));
+    let off = match c {
+        Some(c) => velocity_x * ev.xy[0] / c,
+        None => 0.0,
+    };
+    let t = gamma * (ev.t - off);
     Event {
         xy: [x, y],
         t,

@@ -8,11 +8,11 @@ use std::fs::File;
 use std::io::Read;
 use minifb::{Key, Window, WindowOptions};
 
-const WIDTH: usize = 640;
-const HEIGHT: usize = 360;
+const WIDTH: usize = 1800;
+const HEIGHT: usize = 1200;
 
 const MIN_T: f64 = 0.0;
-const MAX_T: f64 = 1.0;
+const MAX_T: f64 = 10.0;
 const STEP_T: f64 = 0.001;
 const C: f64 = 100.0;
 
@@ -99,16 +99,22 @@ fn main() {
             if obj.lifetime[0] > t || obj.lifetime[1] < t { continue; }
             let x = obj.xy_offset[0] + obj.velocity[0] * t;
             let y = obj.xy_offset[1] + obj.velocity[1] * t;
-
             let c = get_color(&obj.color);
-            for x_ in -2..=2 {
-                for y_ in -2..=2 {
+
+            let ev = Event {
+                t,
+                xy: [x, y],
+            };
+            let Event { xy: [x, y], t: t2 } = frame.from_other_frame(Frame::main(), ev, Some(C));
+
+            const R: i32 = 5;
+            for x_ in -R..=R {
+                for y_ in -R..=R {
                     let ev = Event {
-                        t,
+                        t: t2,
                         xy: [x + x_ as f64, y + y_ as f64],
                     };
-                    let ev = frame.from_other_frame(Frame::main(), ev, Some(C));
-                    let ev = Frame::main().from_other_frame(frame, ev, None);
+                    let ev = frame.from_other_frame(obj.frame(), ev, Some(C));
                     if ev.xy[0] < 0.0 || ev.xy[0] > WIDTH as f64 { continue; }
                     if ev.xy[1] < 0.0 || ev.xy[1] > HEIGHT as f64 { continue; }
                     buffer[ev.xy[0] as usize + ev.xy[1] as usize * WIDTH] = c;

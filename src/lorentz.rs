@@ -1,3 +1,5 @@
+use serde::*;
+
 fn sqr(x: f64) -> f64 { x * x }
 
 // A Frame described relative to the implicit main frame with velocity = [0, 0].
@@ -8,6 +10,7 @@ pub struct Frame {
 }
 
 #[derive(Clone, Copy, PartialEq, Debug)]
+#[derive(Serialize, Deserialize)]
 pub struct Event {
     pub xy: [f64; 2],
     pub t: f64,

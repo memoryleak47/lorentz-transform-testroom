@@ -1,50 +1,22 @@
+observer_velocity = [10, 0]
+
 [[object]]
-lifetime = [0, 10]
 color = "red"
-velocity = [90, 0]
-xy_offset = [100, 100]
+[object.start]
+t = 1
+xy = [100, 100]
+
+[object.end]
+t = 2
+xy = [100, 100]
+
 
 [[object]]
-lifetime = [0, 10]
-color = "violet"
-velocity = [-90, 0]
-xy_offset = [100, 100]
-
-[[object]]
-lifetime = [0, 10]
 color = "blue"
-velocity = [0, 30]
-xy_offset = [100, 100]
+[object.start]
+t = 1
+xy = [200, 200]
 
-[[object]]
-lifetime = [0, 10]
-color = "green"
-velocity = [65, 65]
-xy_offset = [100, 100]
-
-
-############# background
-
-[[object]]
-lifetime = [0, 10]
-color = "yellow"
-velocity = [0, 0]
-xy_offset = [300, 300]
-
-[[object]]
-lifetime = [0, 10]
-color = "yellow"
-velocity = [0, 0]
-xy_offset = [100, 300]
-
-[[object]]
-lifetime = [0, 10]
-color = "yellow"
-velocity = [0, 0]
-xy_offset = [100, 100]
-
-[[object]]
-lifetime = [0, 10]
-color = "yellow"
-velocity = [0, 0]
-xy_offset = [300, 100]
+[object.end]
+t = 2
+xy = [200, 200]

@@ -1,8 +1,6 @@
 mod lorentz;
 use lorentz::*;
 
-mod stdin;
-
 use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::Read;
@@ -11,31 +9,21 @@ use minifb::{Key, Window, WindowOptions};
 const WIDTH: usize = 1800;
 const HEIGHT: usize = 1200;
 
-const MIN_T: f64 = 0.0;
-const MAX_T: f64 = 10.0;
-const STEP_T: f64 = 0.001;
+const STEP_T: f64 = 0.01;
 const C: f64 = 100.0;
 
 #[derive(Serialize, Deserialize)]
 struct Config {
+    observer_velocity: [f64; 2],
     object: Vec<Object>,
 }
 
 #[derive(Serialize, Deserialize)]
 #[derive(Debug)]
 struct Object {
-    lifetime: [f64; 2], // given in `main-frame` time.
+    start: Event,
+    end: Event,
     color: String,
-    velocity: [f64; 2],
-    xy_offset: [f64; 2], // The position of `self` during the big bang.
-}
-
-impl Object {
-    fn frame(&self) -> Frame {
-        Frame {
-            velocity: self.velocity,
-        }
-    }
 }
 
 fn get_color(s: &str) -> u32 {
@@ -73,53 +61,35 @@ fn main() {
     });
 
     window.limit_update_rate(Some(std::time::Duration::from_micros(16600)));
-    let stdin = stdin::mk_channel();
 
-    let mut frame = Frame::main();
+    // time within the observers frame.
+    let mut t = 0.0;
+    let observer_frame = Frame { velocity: config.observer_velocity };
 
-    // `main-frame` time.
-    let mut t = MIN_T;
-
-    while window.is_open() && !window.is_key_down(Key::Escape) && t < MAX_T {
+    while window.is_open() && !window.is_key_down(Key::Escape) {
         buffer.iter_mut().for_each(|x| *x = 0);
 
-        if let Ok(line) = stdin.try_recv() {
-            if line.starts_with("set-frame ") {
-                let arg = line["set-frame ".len() .. ].trim();
-                if arg == "main" {
-                    frame = Frame::main();
-                    println!("frame set to main frame");
-                } else {
-                    let i = arg.parse::<usize>().unwrap();
-                    frame = config.object[i].frame();
-                    println!("frame set to object {}", i);
-                }
-            }
-        }
-
         for obj in &config.object {
-            if obj.lifetime[0] > t || obj.lifetime[1] < t { continue; }
-            let x = obj.xy_offset[0] + obj.velocity[0] * t;
-            let y = obj.xy_offset[1] + obj.velocity[1] * t;
-            let c = get_color(&obj.color);
+            let start = observer_frame.from_other_frame(Frame::main(), obj.start, Some(C));
+            let end = observer_frame.from_other_frame(Frame::main(), obj.end, Some(C));
 
-            let ev = Event {
-                t,
-                xy: [x, y],
-            };
-            let Event { xy: [x, y], t: t2 } = frame.from_other_frame(Frame::main(), ev, Some(C));
+            if start.t > t || end.t < t { continue; }
+
+            // d = 0, t = start.t
+            // d = 1, t = end.t
+            let d = (t - start.t) / (end.t - start.t);
+            let x = (1.0 - d) * start.xy[0] + d * end.xy[0];
+            let y = (1.0 - d) * start.xy[1] + d * end.xy[1];
+            let c = get_color(&obj.color);
 
             const R: i32 = 5;
             for x_ in -R..=R {
                 for y_ in -R..=R {
-                    let ev = Event {
-                        t: t2,
-                        xy: [x + x_ as f64, y + y_ as f64],
-                    };
-                    let ev = frame.from_other_frame(obj.frame(), ev, Some(C));
-                    if ev.xy[0] < 0.0 || ev.xy[0] > WIDTH as f64 { continue; }
-                    if ev.xy[1] < 0.0 || ev.xy[1] > HEIGHT as f64 { continue; }
-                    buffer[ev.xy[0] as usize + ev.xy[1] as usize * WIDTH] = c;
+                    let x = x + x_ as f64;
+                    let y = y + y_ as f64;
+                    if x < 0.0 || x > WIDTH as f64 { continue; }
+                    if y < 0.0 || y > HEIGHT as f64 { continue; }
+                    buffer[x as usize + y as usize * WIDTH] = c;
                 }
             }
         }

@@ -14,7 +14,7 @@ const HEIGHT: usize = 360;
 const MIN_T: f64 = 0.0;
 const MAX_T: f64 = 1.0;
 const STEP_T: f64 = 0.001;
-const C: f64 = 10.0;
+const C: f64 = 10000.0;
 
 #[derive(Serialize, Deserialize)]
 struct Config {

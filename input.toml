@@ -3,4 +3,11 @@ lifetime = [0, 1]
 color = "red"
 velocity = [20, 30]
 t_offset = 0
-xy_offset = [0, 0]
+xy_offset = [100, 100]
+
+[[object]]
+lifetime = [0, 1]
+color = "blue"
+velocity = [20, -30]
+t_offset = 0
+xy_offset = [100, 100]

@@ -34,9 +34,7 @@ struct Object {
 impl Object {
     fn frame(&self) -> Frame {
         Frame {
-            xy_offset: [0.0, 0.0],
             velocity: self.velocity,
-            t_offset: 0.0,
         }
     }
 }

@@ -1,11 +1,10 @@
 fn sqr(x: f64) -> f64 { x * x }
 
-// A Frame described relative to the implicit main frame.
+// A Frame described relative to the implicit main frame with velocity = [0, 0].
+// All frames represent the 'big bang' event as (t,x,y)=(0,0,0) independent of their velocities.
 #[derive(Clone, Copy)]
 pub struct Frame {
     pub velocity: [f64; 2],
-    pub t_offset: f64, // if t_offset is very high, then most events (viewed from within this frame) will have a negative t.
-    pub xy_offset: [f64; 2], // if xy_offset[i] is very high, then most events (viewed from within this frame) will have a negative xy[i].
 }
 
 #[derive(Clone, Copy, PartialEq, Debug)]
@@ -18,39 +17,18 @@ impl Frame {
     pub const fn main() -> Frame {
         Frame {
             velocity: [0.0, 0.0],
-            t_offset: 0.0,
-            xy_offset: [0.0, 0.0],
         }
     }
 
     pub fn from_other_frame(&self, other: Frame, ev: Event, c: Option<f64>) -> Event {
-        let ev = other.to_main(ev, c);
-        let ev = self.from_main(ev, c);
-        ev
-    }
+        // transform from other -> main.
+        let ev = lorentz_sloped(other.velocity, ev, c);
 
-    fn to_main(&self, ev: Event, c: Option<f64>) -> Event {
-        let ev = add_offsets(self.xy_offset, self.t_offset, ev);
-        let ev = lorentz_sloped(self.velocity, ev, c);
-        ev
-    }
-
-    fn from_main(&self, ev: Event, c: Option<f64>) -> Event {
+        // transform from main -> self.
         let ev = lorentz_sloped([-self.velocity[0], -self.velocity[1]], ev, c);
-        let ev = sub_offsets(self.xy_offset, self.t_offset, ev);
+
         ev
     }
-}
-
-fn add_offsets(xy_offset: [f64; 2], t_offset: f64, ev: Event) -> Event {
-    Event {
-        xy: [ev.xy[0] + xy_offset[0], ev.xy[1] + xy_offset[1]],
-        t: ev.t + t_offset,
-    }
-}
-
-fn sub_offsets(xy_offset: [f64; 2], t_offset: f64, ev: Event) -> Event {
-    add_offsets([-xy_offset[0], -xy_offset[1]], -t_offset, ev)
 }
 
 fn rotate(alpha: f64, ev: Event) -> Event {
@@ -108,58 +86,16 @@ mod tests {
     const A: Frame = Frame::main();
     const B: Frame = Frame {
         velocity: [30.0, 0.0],
-        xy_offset: [0.0, 0.0],
-        t_offset: 0.0,
     };
 
     const C: Frame = Frame {
         velocity: [0.0, 30.0],
-        xy_offset: [0.0, 0.0],
-        t_offset: 0.0,
     };
 
     const EV1: Event = Event {
         xy: [2.4, 83.0],
         t: 24.0,
     };
-
-    #[test]
-    fn to_main_without_c() {
-        for frame in [A, B, C] {
-            let ev = EV1;
-
-            let x = ev.xy[0] + ev.t * frame.velocity[0];
-            let y = ev.xy[1] + ev.t * frame.velocity[1];
-            let t = ev.t;
-
-            let correct_ev = Event {
-                xy: [x, y],
-                t,
-            };
-
-            let ev = frame.to_main(ev, None);
-            assert_close(ev, correct_ev);
-        }
-    }
-
-    #[test]
-    fn from_main_without_c() {
-        for frame in [A, B, C] {
-            let ev = EV1;
-
-            let x = ev.xy[0] - ev.t * frame.velocity[0];
-            let y = ev.xy[1] - ev.t * frame.velocity[1];
-            let t = ev.t;
-
-            let correct_ev = Event {
-                xy: [x, y],
-                t,
-            };
-
-            let ev = frame.from_main(ev, None);
-            assert_close(ev, correct_ev);
-        }
-    }
 
     #[test]
     fn transform_without_c() {
@@ -196,7 +132,7 @@ mod tests {
         for src in [A, B, C] {
             for dst in [A, B, C] {
                 let ev = EV1;
-                let ev = dst.from_other_frame(src, EV1, Some(100.0));
+                let ev = dst.from_other_frame(src, ev, Some(100.0));
                 let ev = src.from_other_frame(dst, ev, Some(100.0));
                 assert_close(ev, EV1);
             }

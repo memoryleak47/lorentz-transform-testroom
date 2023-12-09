@@ -102,25 +102,22 @@ impl Ctxt {
                 self.set_stage(self.stage + 1);
             }
 
-            let [focus_x, focus_y] = self.raw_render_position(&self.follow_obj).unwrap();
+            // This is the camera center point.
+            let followed_pixels = self.raw_pixels(&self.follow_obj).unwrap();
+            let focus_x = followed_pixels.iter().map(|[x, _]| x).sum::<f64>() / followed_pixels.len() as f64;
+            let focus_y = followed_pixels.iter().map(|[_, y]| y).sum::<f64>() / followed_pixels.len() as f64;
 
             // render objects.
             for obj in &self.config.object {
-                let Some([x, y]) = self.raw_render_position(obj) else { continue; };
+                let Some(pixels) = self.raw_pixels(obj) else { continue; };
                 let c = get_color(&obj.color);
 
-                let x = x - focus_x + WIDTH as f64/2.0;
-                let y = y - focus_y + HEIGHT as f64/2.0;
-
-                const R: i32 = 5;
-                for x_ in -R..=R {
-                    for y_ in -R..=R {
-                        let x = x + x_ as f64;
-                        let y = y + y_ as f64;
-                        if x < 0.0 || x > WIDTH as f64 { continue; }
-                        if y < 0.0 || y > HEIGHT as f64 { continue; }
-                        self.buffer[x as usize + y as usize * WIDTH] = c;
-                    }
+                for [x, y] in pixels {
+                    let x: f64 = x - focus_x + WIDTH as f64/2.0;
+                    let y: f64 = y - focus_y + HEIGHT as f64/2.0;
+                    if x < 0.0 || x > WIDTH as f64 { continue; }
+                    if y < 0.0 || y > HEIGHT as f64 { continue; }
+                    self.buffer[x as usize + y as usize * WIDTH] = c;
                 }
             }
 
@@ -135,11 +132,7 @@ impl Ctxt {
 
     fn set_stage(&mut self, stage: usize) {
         self.stage = stage;
-
-        let (start, end) = (self.follow_obj.path[stage], self.follow_obj.path[stage+1]);
-        let vx = (start[X] - end[X]) / (end[T] - start[T]);
-        let vy = (start[Y] - end[Y]) / (end[T] - start[T]);
-        self.observer_frame = Frame { velocity: [vx, vy] };
+        self.observer_frame = self.calc_frame(&self.follow_obj, stage);
         self.t = self.main_to_observer(self.follow_obj.path[self.stage])[T];
     }
 
@@ -158,16 +151,44 @@ impl Ctxt {
         return None;
     }
 
-    fn raw_render_position(&self, obj: &Object) -> Option<[f64; 2]> {
-        let (_, start, end) = self.find_stage(obj)?;
+    fn raw_pixels(&self, obj: &Object) -> Option<Vec<[f64; 2]>> {
+        let (stage, start, end) = self.find_stage(obj)?;
+        let f = self.calc_frame(obj, stage);
 
-        // d = 0, t = start.t
-        // d = 1, t = end.t
-        let d = (self.t - start[T]) / (end[T] - start[T]);
-        let x = (1.0 - d) * start[X] + d * end[X];
-        let y = (1.0 - d) * start[Y] + d * end[Y];
+        let mut pixels = Vec::new();
 
-        Some([x, y])
+        const R: i32 = 5;
+        for x_ in -R..=R {
+            for y_ in -R..=R {
+
+                // calculate start & end in objs resting frame f.
+                let start = f.from_other_frame(self.observer_frame, start, Some(self.config.c));
+                let end = f.from_other_frame(self.observer_frame, end, Some(self.config.c));
+
+                // add offsets there.
+                let start = [start[X] + x_ as f64, start[Y] + y_ as f64, start[T]];
+                let end = [end[X] + x_ as f64, end[Y] + y_ as f64, end[T]];
+
+                // transform back to the observers frame.
+                let start = self.observer_frame.from_other_frame(f, start, Some(self.config.c));
+                let end = self.observer_frame.from_other_frame(f, end, Some(self.config.c));
+
+                let d = (self.t - start[T]) / (end[T] - start[T]);
+                let x = (1.0 - d) * start[X] + d * end[X];
+                let y = (1.0 - d) * start[Y] + d * end[Y];
+
+                pixels.push([x, y]);
+            }
+        }
+
+        Some(pixels)
+    }
+
+    fn calc_frame(&self, obj: &Object, stage: usize) -> Frame {
+        let (start, end) = (obj.path[stage], obj.path[stage+1]);
+        let vx = (start[X] - end[X]) / (end[T] - start[T]);
+        let vy = (start[Y] - end[Y]) / (end[T] - start[T]);
+        Frame { velocity: [vx, vy] }
     }
 }
 

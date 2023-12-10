@@ -62,6 +62,14 @@ impl Ctxt {
         assert_eq!(config.object.iter().filter(|x| x.follow.is_some()).count(), 1);
         let follow_idx = config.object.iter().position(|x| x.follow.is_some()).unwrap();
 
+        for obj in &config.object {
+            for stage in 0..obj.path.len()-1 {
+                let v = Self::calc_frame(obj, stage).velocity;
+                let len = (v[0] * v[0] + v[1] * v[1]).sqrt();
+                assert!(len < config.c, "You cannot move faster than c!");
+            }
+        }
+
         let buffer: Vec<u32> = vec![0; WIDTH * HEIGHT];
 
         let mut window = Window::new(
@@ -133,7 +141,7 @@ impl Ctxt {
 
     fn set_stage(&mut self, stage: usize) {
         self.stage = stage;
-        self.observer_frame = self.calc_frame(&self.follow_obj, stage);
+        self.observer_frame = Self::calc_frame(&self.follow_obj, stage);
         self.t = self.main_to_observer(self.follow_obj.path[self.stage])[T];
     }
 
@@ -154,7 +162,7 @@ impl Ctxt {
 
     fn raw_pixels(&self, obj: &Object) -> Option<Vec<[f64; 2]>> {
         let (stage, start, end) = self.find_stage(obj)?;
-        let f = self.calc_frame(obj, stage);
+        let f = Self::calc_frame(obj, stage);
 
         let mut pixels = Vec::new();
 
@@ -185,7 +193,7 @@ impl Ctxt {
         Some(pixels)
     }
 
-    fn calc_frame(&self, obj: &Object, stage: usize) -> Frame {
+    fn calc_frame(obj: &Object, stage: usize) -> Frame {
         let (start, end) = (obj.path[stage], obj.path[stage+1]);
         let vx = (end[X] - start[X]) / (end[T] - start[T]);
         let vy = (end[Y] - start[Y]) / (end[T] - start[T]);

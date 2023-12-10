@@ -38,7 +38,7 @@ fn get_color(s: &str) -> u32 {
 }
 
 fn load_config() -> Config {
-    let filename = std::env::args().nth(1).unwrap_or_else(|| String::from("input.toml"));
+    let filename = std::env::args().nth(1).unwrap_or_else(|| String::from("file.toml"));
     let mut f = File::open(&filename).unwrap();
     let mut data = String::new();
     f.read_to_string(&mut data).unwrap();

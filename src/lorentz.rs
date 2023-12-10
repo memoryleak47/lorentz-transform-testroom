@@ -72,10 +72,10 @@ mod tests {
     use super::*;
 
     fn assert_close(ev1: Event, ev2: Event) {
-        const T: f64 = 1e-5;
-        assert!((ev1[X] - ev2[X]).abs() <= T, "x error: {} vs. {}", ev1[X], ev2[X]);
-        assert!((ev1[Y] - ev2[Y]).abs() <= T, "y error: {} vs. {}", ev1[Y], ev2[Y]);
-        assert!((ev1[T] - ev2[T]).abs() <= T, "t error: {} vs. {}", ev1[T], ev2[T]);
+        let tolerance = 1e-5;
+        assert!((ev1[X] - ev2[X]).abs() <= tolerance, "x error: {} vs. {}", ev1[X], ev2[X]);
+        assert!((ev1[Y] - ev2[Y]).abs() <= tolerance, "y error: {} vs. {}", ev1[Y], ev2[Y]);
+        assert!((ev1[T] - ev2[T]).abs() <= tolerance, "t error: {} vs. {}", ev1[T], ev2[T]);
     }
 
     const A: Frame = Frame::main();
@@ -95,8 +95,8 @@ mod tests {
             for dst in [A, B, C] {
                 let ev = EV1;
 
-                let x = ev[X] + ev.t * (src.velocity[0] - dst.velocity[0]);
-                let y = ev[Y] + ev.t * (src.velocity[1] - dst.velocity[1]);
+                let x = ev[X] + ev[T] * (src.velocity[0] - dst.velocity[0]);
+                let y = ev[Y] + ev[T] * (src.velocity[1] - dst.velocity[1]);
                 let t = ev[T];
                 let correct_ev = [x, y, t];
 

@@ -9,12 +9,10 @@ use minifb::{Key, Window, WindowOptions};
 const WIDTH: usize = 1800;
 const HEIGHT: usize = 1200;
 
-const STEP_T: f64 = 0.01;
-const MAX_CLOCK: f64 = 20.0;
-
 #[derive(Serialize, Deserialize)]
 struct Config {
     c: f64,
+    tick_delta: f64,
     object: Vec<Object>,
 }
 
@@ -23,6 +21,7 @@ struct Config {
 struct Object {
     follow: Option<String>,
     color: String,
+    max_clock: Option<f64>,
     path: Vec<Event>,
 }
 
@@ -134,7 +133,7 @@ impl Ctxt {
                 }
             }
 
-            self.t += STEP_T;
+            self.t += self.config.tick_delta;
 
             // We unwrap here as we want this code to exit if it fails. Real applications may want to handle this in a different way
             self.window
@@ -238,13 +237,14 @@ impl Ctxt {
     // d is a value from 0 to 1, representing how far in the stage the object is currently.
     // returns a value from 0 to 1, representing how full the clock should be.
     fn clock_value(&self, obj: &Object, stage: usize, d: f64) -> f64 {
+        let Some(max_clock) = obj.max_clock else { return 0.0; };
         let mut sum = 0.0;
         for s in 0..stage {
             sum += self.local_stage_duration(obj, s);
         }
         sum += self.local_stage_duration(obj, stage) * d;
 
-        let clock = (sum / MAX_CLOCK).min(1.0);
+        let clock = (sum / max_clock).min(1.0);
 
         clock
     }

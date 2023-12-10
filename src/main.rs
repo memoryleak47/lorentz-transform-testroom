@@ -13,6 +13,7 @@ const HEIGHT: usize = 1200;
 struct Config {
     c: f64,
     tick_delta: f64,
+    max_clock: f64,
     object: Vec<Object>,
 }
 
@@ -20,8 +21,8 @@ struct Config {
 #[derive(Debug, Clone)]
 struct Object {
     follow: Option<String>,
+    clock: Option<String>,
     color: String,
-    max_clock: Option<f64>,
     path: Vec<Event>,
 }
 
@@ -237,14 +238,17 @@ impl Ctxt {
     // d is a value from 0 to 1, representing how far in the stage the object is currently.
     // returns a value from 0 to 1, representing how full the clock should be.
     fn clock_value(&self, obj: &Object, stage: usize, d: f64) -> f64 {
-        let Some(max_clock) = obj.max_clock else { return 0.0; };
+        if obj.clock.is_none() {
+            return 0.0;
+        }
+
         let mut sum = 0.0;
         for s in 0..stage {
             sum += self.local_stage_duration(obj, s);
         }
         sum += self.local_stage_duration(obj, stage) * d;
 
-        let clock = (sum / max_clock).min(1.0);
+        let clock = (sum / self.config.max_clock).min(1.0);
 
         clock
     }

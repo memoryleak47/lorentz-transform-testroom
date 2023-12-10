@@ -1,16 +1,17 @@
 c = 450
 tick_delta = 0.01
+max_clock = 20.0
 
 [[object]]
 color = "blue"
 path = [[0, 0, 0], [0, 0, 1]]
-max_clock = 20.0
 follow = "me"
+clock = "yes"
 
 [[object]]
 color = "violet"
 path = [[0, 0, 0], [400, 0, 1]]
-max_clock = 20.0
+clock = "yes"
 
 # background grid:
 

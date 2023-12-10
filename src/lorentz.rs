@@ -21,10 +21,10 @@ impl Frame {
 
     pub fn from_other_frame(&self, other: Frame, ev: Event, c: Option<f64>) -> Event {
         // transform from other -> main.
-        let ev = lorentz_sloped(other.velocity, ev, c);
+        let ev = to_frame_with_relative_velocity([-other.velocity[0], -other.velocity[1]], ev, c);
 
         // transform from main -> self.
-        let ev = lorentz_sloped([-self.velocity[0], -self.velocity[1]], ev, c);
+        let ev = to_frame_with_relative_velocity(self.velocity, ev, c);
 
         ev
     }
@@ -39,18 +39,20 @@ fn rotate(alpha: f64, ev: Event) -> Event {
     [x, y, t]
 }
 
-fn lorentz_sloped(velocity: [f64; 2], ev: Event, c: Option<f64>) -> Event {
+// converts `ev` from frame A to B, where A considers B to have a velocity `velocity`.
+fn to_frame_with_relative_velocity(velocity: [f64; 2], ev: Event, c: Option<f64>) -> Event {
     let alpha = f64::atan2(velocity[1], velocity[0]);
     let len = f64::sqrt(sqr(velocity[0]) + sqr(velocity[1]));
 
     let ev = rotate(-alpha, ev);
-    let ev = lorentz_straight(-len, ev, c);
+    let ev = to_frame_with_relative_velocity_x(len, ev, c);
     let ev = rotate(alpha, ev);
 
     ev
 }
 
-fn lorentz_straight(velocity_x: f64, ev: Event, c: Option<f64>) -> Event {
+// converts `ev` from frame A to B, where A considers B to have a velocity `[velocity_x, 0]`.
+fn to_frame_with_relative_velocity_x(velocity_x: f64, ev: Event, c: Option<f64>) -> Event {
     let gamma = match c {
         Some(c) => 1.0 / f64::sqrt(1.0 - sqr(velocity_x) / sqr(c)),
         None => 1.0,

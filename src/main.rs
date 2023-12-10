@@ -187,8 +187,8 @@ impl Ctxt {
 
     fn calc_frame(&self, obj: &Object, stage: usize) -> Frame {
         let (start, end) = (obj.path[stage], obj.path[stage+1]);
-        let vx = (start[X] - end[X]) / (end[T] - start[T]);
-        let vy = (start[Y] - end[Y]) / (end[T] - start[T]);
+        let vx = (end[X] - start[X]) / (end[T] - start[T]);
+        let vy = (end[Y] - start[Y]) / (end[T] - start[T]);
         Frame { velocity: [vx, vy] }
     }
 }

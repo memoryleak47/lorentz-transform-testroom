@@ -45,7 +45,7 @@ fn to_frame_with_relative_velocity(velocity: [f64; 2], ev: Event, c: Option<f64>
     let len = f64::sqrt(sqr(velocity[0]) + sqr(velocity[1]));
 
     let ev = rotate(-alpha, ev);
-    let ev = to_frame_with_relative_velocity_x(len, ev, c);
+    let ev = to_frame_with_relative_velocity_x(-len, ev, c); // TODO where does this negation belong? It shouldn't be here!
     let ev = rotate(alpha, ev);
 
     ev

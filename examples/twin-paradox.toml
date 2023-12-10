@@ -1,17 +1,17 @@
 c = 25
 tick_delta = 0.05
-max_clock = 20.0
+max_clock = 30.0
 
 [[object]]
 color = "blue"
-path = [[0, 0, 0], [0, 0, 20]]
+path = [[0, 0, 0], [0, 0, 30]]
 clock = "yes"
 
 [[object]]
 color = "violet"
-follow = "me"
-path = [[0, 100, 0], [200, 100, 10], [0, 100, 20]]
+path = [[0, 100, 0], [200, 100, 10], [0, 100, 20], [0, 100, 30]]
 clock = "yes"
+follow = "me"
 
 [[object]]
 color = "green"

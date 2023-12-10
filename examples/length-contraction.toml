@@ -1,7 +1,7 @@
 c = 100
 
 [[object]]
-color = "white"
+color = "blue"
 follow = "me"
 path = [[0, 0, 0], [0, 0, 1]]
 
@@ -28,11 +28,11 @@ color = "green"
 path = [[100, -100, -100], [100, -100, 100]]
 
 
-# Whichever object you choose to follow (white / violet), the other object should be shortened a lot across the X axis.
-# Independent of the follow-object, white and violet should move apart with the same speed.
+# Whichever object you choose to follow (blue / violet), the other object should be shortened a lot across the X axis.
+# Independent of the follow-object, blue and violet should move apart with the same speed.
 
-# When following white:
+# When following blue:
 # - The green boxes should be non-deformed
 # When following violet:
-# - Each of the green boxes should be shortened in X (just like white is), and
+# - Each of the green boxes should be shortened in X (just like blue is), and
 # - also the virtual box (whose 4 corners are the green boxes) should be shortened in X direction

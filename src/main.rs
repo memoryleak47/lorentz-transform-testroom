@@ -10,6 +10,7 @@ const WIDTH: usize = 1800;
 const HEIGHT: usize = 1200;
 
 const STEP_T: f64 = 0.01;
+const MAX_CLOCK: f64 = 20.0;
 
 #[derive(Serialize, Deserialize)]
 struct Config {
@@ -32,7 +33,6 @@ fn get_color(s: &str) -> u32 {
         "green" => 0x00ff00,
         "yellow" => 0xffff00,
         "violet" => 0xff00ff,
-        "white" => 0xffffff,
         _ => panic!(),
     }
 }
@@ -54,6 +54,11 @@ struct Ctxt {
     observer_frame: Frame,
     buffer: Vec<u32>,
     window: Window,
+}
+
+struct Pixel {
+    pos: [f64; 2], // raw-render-position in the observer frame
+    color: u32,
 }
 
 impl Ctxt {
@@ -113,20 +118,19 @@ impl Ctxt {
 
             // This is the camera center point.
             let followed_pixels = self.raw_pixels(&self.follow_obj).unwrap();
-            let focus_x = followed_pixels.iter().map(|[x, _]| x).sum::<f64>() / followed_pixels.len() as f64;
-            let focus_y = followed_pixels.iter().map(|[_, y]| y).sum::<f64>() / followed_pixels.len() as f64;
+            let focus_x = followed_pixels.iter().map(|px| px.pos[0]).sum::<f64>() / followed_pixels.len() as f64;
+            let focus_y = followed_pixels.iter().map(|px| px.pos[1]).sum::<f64>() / followed_pixels.len() as f64;
 
             // render objects.
             for obj in &self.config.object {
                 let Some(pixels) = self.raw_pixels(obj) else { continue; };
-                let c = get_color(&obj.color);
 
-                for [x, y] in pixels {
-                    let x: f64 = x - focus_x + WIDTH as f64/2.0;
-                    let y: f64 = y - focus_y + HEIGHT as f64/2.0;
+                for px in pixels {
+                    let x: f64 = px.pos[0] - focus_x + WIDTH as f64/2.0;
+                    let y: f64 = px.pos[1] - focus_y + HEIGHT as f64/2.0;
                     if x < 0.0 || x > WIDTH as f64 { continue; }
                     if y < 0.0 || y > HEIGHT as f64 { continue; }
-                    self.buffer[x as usize + y as usize * WIDTH] = c;
+                    self.buffer[x as usize + y as usize * WIDTH] = px.color;
                 }
             }
 
@@ -160,15 +164,20 @@ impl Ctxt {
         return None;
     }
 
-    fn raw_pixels(&self, obj: &Object) -> Option<Vec<[f64; 2]>> {
+    fn raw_pixels(&self, obj: &Object) -> Option<Vec<Pixel>> {
         let (stage, start, end) = self.find_stage(obj)?;
-        let f = Self::calc_frame(obj, stage);
 
         let mut pixels = Vec::new();
 
+        let f = Self::calc_frame(obj, stage);
+
+        // TODO is it a problem that this `d` calculation happens in the observer frame, and not in f? I think it can only happen in the observer frame though, as it requires the use of `self.t`.
+        let d = (self.t - start[T]) / (end[T] - start[T]);
+        let clock = self.clock_value(obj, stage, d);
+
         const R: i32 = 5;
-        for x_ in -R..=R {
-            for y_ in -R..=R {
+        for (i, y_) in (-R..=R).enumerate() {
+            for (j, x_) in (-R..=R).enumerate() {
 
                 // calculate start & end in objs resting frame f.
                 let start = f.from_other_frame(self.observer_frame, start, Some(self.config.c));
@@ -186,7 +195,22 @@ impl Ctxt {
                 let x = (1.0 - d) * start[X] + d * end[X];
                 let y = (1.0 - d) * start[Y] + d * end[Y];
 
-                pixels.push([x, y]);
+                #[allow(non_snake_case)]
+                let D = (-R..=R).count();
+                let ij = i*D + j;
+                let max_ij = (D-1)*D + (D-1);
+                let px_d = ij as f64 / max_ij as f64; // number from 0 to 1.
+                assert!(px_d >= 0.0);
+                assert!(px_d <= 1.0);
+                let mut color = get_color(&obj.color);
+                if 1.0 - px_d <= clock {
+                    color = 0xffffff;
+                }
+                let px = Pixel {
+                    color,
+                    pos: [x, y],
+                };
+                pixels.push(px);
             }
         }
 
@@ -198,6 +222,31 @@ impl Ctxt {
         let vx = (end[X] - start[X]) / (end[T] - start[T]);
         let vy = (end[Y] - start[Y]) / (end[T] - start[T]);
         Frame { velocity: [vx, vy] }
+    }
+
+    fn local_stage_duration(&self, obj: &Object, stage: usize) -> f64 {
+        let f = Self::calc_frame(obj, stage);
+        let (start, end) = (obj.path[stage], obj.path[stage+1]);
+        let start = f.from_other_frame(Frame::main(), start, Some(self.config.c));
+        let end = f.from_other_frame(Frame::main(), end, Some(self.config.c));
+
+        let delta = end[T] - start[T];
+        assert!(delta >= 0.0);
+        delta
+    }
+
+    // d is a value from 0 to 1, representing how far in the stage the object is currently.
+    // returns a value from 0 to 1, representing how full the clock should be.
+    fn clock_value(&self, obj: &Object, stage: usize, d: f64) -> f64 {
+        let mut sum = 0.0;
+        for s in 0..stage {
+            sum += self.local_stage_duration(obj, s);
+        }
+        sum += self.local_stage_duration(obj, stage) * d;
+
+        let clock = (sum / MAX_CLOCK).min(1.0);
+
+        clock
     }
 }
 

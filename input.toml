@@ -1,7 +1,7 @@
 c = 100
 
 [[object]]
-color = "white"
+color = "blue"
 path = [[100, 100, 0], [100, 100, 1]]
 
 [[object]]

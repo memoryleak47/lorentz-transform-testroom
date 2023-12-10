@@ -2,12 +2,12 @@ c = 100
 
 [[object]]
 color = "blue"
-follow = "me"
 path = [[0, 0, 0], [0, 0, 1]]
 
 [[object]]
 color = "violet"
 path = [[0, 0, 0], [90, 0, 1]]
+follow = "me"
 
 # background grid:
 

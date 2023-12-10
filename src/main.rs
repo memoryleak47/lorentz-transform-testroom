@@ -175,7 +175,7 @@ impl Ctxt {
         let d = (self.t - start[T]) / (end[T] - start[T]);
         let clock = self.clock_value(obj, stage, d);
 
-        const R: i32 = 5;
+        const R: i32 = 20;
         for (i, y_) in (-R..=R).enumerate() {
             for (j, x_) in (-R..=R).enumerate() {
 

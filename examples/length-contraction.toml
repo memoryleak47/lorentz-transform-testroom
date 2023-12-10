@@ -1,0 +1,38 @@
+c = 100
+
+[[object]]
+color = "white"
+follow = "me"
+path = [[0, 0, 0], [0, 0, 1]]
+
+[[object]]
+color = "violet"
+path = [[0, 0, 0], [90, 0, 1]]
+
+# background grid:
+
+[[object]]
+color = "green"
+path = [[-100, -100, -100], [-100, -100, 100]]
+
+[[object]]
+color = "green"
+path = [[100, 100, -100], [100, 100, 100]]
+
+[[object]]
+color = "green"
+path = [[-100, 100, -100], [-100, 100, 100]]
+
+[[object]]
+color = "green"
+path = [[100, -100, -100], [100, -100, 100]]
+
+
+# Whichever object you choose to follow (white / violet), the other object should be shortened a lot across the X axis.
+# Independent of the follow-object, white and violet should move apart with the same speed.
+
+# When following white:
+# - The green boxes should be non-deformed
+# When following violet:
+# - Each of the green boxes should be shortened in X (just like white is), and
+# - also the virtual box (whose 4 corners are the green boxes) should be shortened in X direction

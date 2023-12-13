@@ -38,7 +38,11 @@ fn get_color(s: &str) -> u32 {
 }
 
 fn load_config() -> Config {
-    let filename = std::env::args().nth(1).unwrap_or_else(|| String::from("file.toml"));
+    let filename = std::env::args().nth(1).unwrap_or_else(|| {
+        eprintln!("Missing config file argument. You can pick an example from the examples folder");
+        eprintln!("Run using `cargo run <config-file>`");
+        std::process::exit(1);
+    });
     let mut f = File::open(&filename).unwrap();
     let mut data = String::new();
     f.read_to_string(&mut data).unwrap();

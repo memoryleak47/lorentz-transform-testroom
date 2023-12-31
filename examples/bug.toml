@@ -1,0 +1,19 @@
+# In this file, violet and blue collide if you follow violet.
+# But they don't collide, if you follow blue.
+# This is a bug.
+# Maybe wee need to do stage calculation pixel-wise?
+
+c = 50
+tick_delta = 0.05
+max_clock = 30.0
+
+[[object]]
+color = "violet"
+path = [[-500, -4, 0], [-50, -4, 10], [-50, -4, 20]]
+clock = "yes"
+follow = "me"
+
+[[object]]
+color = "blue"
+path = [[0, 0, 0], [0, 0, 100]]
+clock = "yes"

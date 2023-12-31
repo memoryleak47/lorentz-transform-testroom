@@ -4,21 +4,8 @@ use config::*;
 mod lorentz;
 use lorentz::*;
 
-use minifb::{Key, Window, WindowOptions};
-
-const WIDTH: usize = 1800;
-const HEIGHT: usize = 1200;
-
-fn get_color(s: &str) -> u32 {
-    match s {
-        "red" => 0xff0000,
-        "blue" => 0x0000ff,
-        "green" => 0x00ff00,
-        "yellow" => 0xffff00,
-        "violet" => 0xff00ff,
-        _ => panic!(),
-    }
-}
+mod graphics;
+use graphics::*;
 
 struct Ctxt {
     config: Config,
@@ -26,13 +13,7 @@ struct Ctxt {
     stage: usize,
     t: f64,
     observer_frame: Frame,
-    buffer: Vec<u32>,
-    window: Window,
-}
-
-struct Pixel {
-    pos: [f64; 2], // raw-render-position in the observer frame
-    color: u32,
+    graphics: Graphics,
 }
 
 impl Ctxt {
@@ -49,19 +30,6 @@ impl Ctxt {
             }
         }
 
-        let buffer: Vec<u32> = vec![0; WIDTH * HEIGHT];
-
-        let mut window = Window::new(
-            "Test - ESC to exit",
-            WIDTH,
-            HEIGHT,
-            WindowOptions::default(),
-        )
-        .unwrap_or_else(|e| {
-            panic!("{}", e);
-        });
-
-        window.limit_update_rate(Some(std::time::Duration::from_micros(16600)));
 
         let mut ctxt = Ctxt {
             follow_obj: config.object[follow_idx].clone(),
@@ -69,8 +37,7 @@ impl Ctxt {
             stage: 0,
             t: 0.0, // will be set correctly in set_stage.
             observer_frame: Frame::main(), // will be set correctly in set_stage.
-            buffer,
-            window
+            graphics: Graphics::new(),
         };
 
         ctxt.set_stage(0);
@@ -79,8 +46,7 @@ impl Ctxt {
     }
 
     fn run(&mut self) {
-        while self.window.is_open() && !self.window.is_key_down(Key::Escape) {
-            self.buffer.iter_mut().for_each(|x| *x = 0);
+        while self.graphics.is_open() {
 
             // consider switching stages.
             while self.main_to_observer(self.follow_obj.path[self.stage+1])[T] < self.t {
@@ -95,25 +61,16 @@ impl Ctxt {
             let focus_x = followed_pixels.iter().map(|px| px.pos[0]).sum::<f64>() / followed_pixels.len() as f64;
             let focus_y = followed_pixels.iter().map(|px| px.pos[1]).sum::<f64>() / followed_pixels.len() as f64;
 
-            // render objects.
+            let mut pixels = Vec::new();
             for obj in &self.config.object {
-                let Some(pixels) = self.raw_pixels(obj) else { continue; };
-
-                for px in pixels {
-                    let x: f64 = px.pos[0] - focus_x + WIDTH as f64/2.0;
-                    let y: f64 = px.pos[1] - focus_y + HEIGHT as f64/2.0;
-                    if x < 0.0 || x > WIDTH as f64 { continue; }
-                    if y < 0.0 || y > HEIGHT as f64 { continue; }
-                    self.buffer[x as usize + y as usize * WIDTH] = px.color;
+                if let Some(pxs) = self.raw_pixels(&obj) {
+                    pixels.extend(pxs);
                 }
             }
 
-            self.t += self.config.tick_delta;
+            self.graphics.draw([focus_x, focus_y], pixels);
 
-            // We unwrap here as we want this code to exit if it fails. Real applications may want to handle this in a different way
-            self.window
-                .update_with_buffer(&self.buffer, WIDTH, HEIGHT)
-                .unwrap();
+            self.t += self.config.tick_delta;
         }
     }
 
@@ -176,7 +133,7 @@ impl Ctxt {
                 let px_d = ij as f64 / max_ij as f64; // number from 0 to 1.
                 assert!(px_d >= 0.0);
                 assert!(px_d <= 1.0);
-                let mut color = get_color(&obj.color);
+                let mut color = Graphics::get_color(&obj.color);
                 if 1.0 - px_d <= clock {
                     color = 0xffffff;
                 }

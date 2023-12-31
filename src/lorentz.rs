@@ -1,7 +1,7 @@
 fn sqr(x: f64) -> f64 { x * x }
 
 // A Frame described relative to the implicit main frame with velocity = [0, 0].
-// All frames represent the 'big bang' event as (t,x,y)=(0,0,0) independent of their velocities.
+// All frames represent the 'big bang' event as (x,y,t)=(0,0,0) independent of their velocities.
 #[derive(Clone, Copy)]
 pub struct Frame {
     pub velocity: [f64; 2],

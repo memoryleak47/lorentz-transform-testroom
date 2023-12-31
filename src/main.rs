@@ -1,30 +1,13 @@
+mod config;
+use config::*;
+
 mod lorentz;
 use lorentz::*;
 
-use serde::{Deserialize, Serialize};
-use std::fs::File;
-use std::io::Read;
 use minifb::{Key, Window, WindowOptions};
 
 const WIDTH: usize = 1800;
 const HEIGHT: usize = 1200;
-
-#[derive(Serialize, Deserialize)]
-struct Config {
-    c: f64,
-    tick_delta: f64,
-    max_clock: f64,
-    object: Vec<Object>,
-}
-
-#[derive(Serialize, Deserialize)]
-#[derive(Debug, Clone)]
-struct Object {
-    follow: Option<String>,
-    clock: Option<String>,
-    color: String,
-    path: Vec<Event>,
-}
 
 fn get_color(s: &str) -> u32 {
     match s {
@@ -35,19 +18,6 @@ fn get_color(s: &str) -> u32 {
         "violet" => 0xff00ff,
         _ => panic!(),
     }
-}
-
-fn load_config() -> Config {
-    let filename = std::env::args().nth(1).unwrap_or_else(|| {
-        eprintln!("Missing config file argument. You can pick an example from the examples folder");
-        eprintln!("Run using `cargo run <config-file>`");
-        std::process::exit(1);
-    });
-    let mut f = File::open(&filename).unwrap();
-    let mut data = String::new();
-    f.read_to_string(&mut data).unwrap();
-
-    toml::from_str(&*data).unwrap()
 }
 
 struct Ctxt {

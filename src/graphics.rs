@@ -9,7 +9,6 @@ pub struct Graphics {
     window: Window,
 }
 
-
 pub struct Pixel {
     pub pos: [f64; 2],
     pub color: u32,
@@ -32,17 +31,6 @@ impl Graphics {
         window.limit_update_rate(Some(std::time::Duration::from_micros(16600)));
 
         Graphics { buffer, window }
-    }
-
-    pub fn get_color(s: &str) -> u32 {
-        match s {
-            "red" => 0xff0000,
-            "blue" => 0x0000ff,
-            "green" => 0x00ff00,
-            "yellow" => 0xffff00,
-            "violet" => 0xff00ff,
-            _ => panic!(),
-        }
     }
 
     pub fn draw(&mut self, focus: [f64; 2], pixels: Vec<Pixel>) {
@@ -68,3 +56,15 @@ impl Graphics {
         self.window.is_open() && !self.window.is_key_down(Key::Escape)
     }
 }
+
+pub fn get_color(s: &str) -> u32 {
+    match s {
+        "red" => 0xff0000,
+        "blue" => 0x0000ff,
+        "green" => 0x00ff00,
+        "yellow" => 0xffff00,
+        "violet" => 0xff00ff,
+        _ => panic!(),
+    }
+}
+

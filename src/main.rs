@@ -85,8 +85,6 @@ impl Ctxt {
 
     fn current_pos(&self, pixel_obj: &PixelObject) -> Option<[f64; 2]> {
         let (_, start, end) = self.find_stage(pixel_obj)?;
-        let start = self.main_to_observer(start);
-        let end = self.main_to_observer(end);
 
         let d = (self.t - start[T]) / (end[T] - start[T]);
         let x = start[X] * (1.0 - d) + end[X] * d;

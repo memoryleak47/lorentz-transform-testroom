@@ -47,9 +47,10 @@ impl Ctxt {
         let mut pixels = Vec::new();
         for pobj in &self.pixel_objects {
             if let Some(px) = self.current_pos(&pobj) {
+                let stage_parity = self.find_stage(&pobj).unwrap().0 % 2;
                 let px = Pixel {
                     pos: px,
-                    color: pobj.color,
+                    color: pobj.color + (stage_parity * 160) as u32,
                 };
                 pixels.push(px);
             }

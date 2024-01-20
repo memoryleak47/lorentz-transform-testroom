@@ -1,0 +1,12 @@
+c = 106
+tick_delta = 0.01
+max_clock = 30.0
+
+[[object]]
+color = "green"
+path = [[0, -50, 0], [0, -50, 100]]
+follow = "me"
+
+[[object]]
+color = "red"
+path = [[0, 0, 0], [0, 0, 1], [300, 0, 4], [300, 0, 10]]

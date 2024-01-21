@@ -89,7 +89,7 @@ impl Ctxt {
         let mut pixels = Vec::new();
         for cl in &self.clocks {
             if let Some(pos) = self.current_pos(&cl.path) {
-                let clock_val = self.clock_value(&cl.path).unwrap();
+                let clock_val = self.clock_value(&cl).unwrap();
                 for x in -10..=10 {
                     for y in -10..=10 {
                         let (x, y) = (x as f64, y as f64);

@@ -43,8 +43,13 @@ impl Config {
 
         const R: i32 = 20;
         for obj in &self.object {
-            if obj.clock.is_some() {
-                clocks.push(Clock { path: obj.path.clone() });
+            if let Some(s) = obj.clock.as_deref() {
+                let ty = match s {
+                    "once" => ClockType::Once,
+                    "repeat" => ClockType::Repeat,
+                    _ => panic!("invalid clock type! {}", s),
+                };
+                clocks.push(Clock { ty, path: obj.path.clone() });
             }
 
             for y in -R..=R {

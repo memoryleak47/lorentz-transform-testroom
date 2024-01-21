@@ -1,17 +1,17 @@
-c = 25
+c = 120
 
 [[object]]
 color = "blue"
-path = [[0, 0, 0], [0, 0, 30]]
-clock = "yes"
+path = [[0, 0, 0], [0, 0, 6]]
+clock = "once"
 
 [[object]]
 color = "violet"
-path = [[0, 100, 0], [200, 100, 10], [0, 100, 20], [0, 100, 30]]
-clock = "yes"
+path = [[0, 100, 0], [200, 100, 2], [0, 100, 4], [0, 100, 6]]
+clock = "once"
 follow = "me"
 
 [[object]]
 color = "green"
-path = [[200, 0, 0], [200, 0, 100]]
-clock = "yes"
+path = [[200, 0, 0], [200, 0, 20]]
+clock = "once"

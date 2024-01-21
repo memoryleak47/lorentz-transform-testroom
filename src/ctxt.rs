@@ -23,7 +23,11 @@ pub struct PixelObject {
 }
 
 #[derive(Clone)]
+pub enum ClockType { Repeat, Once }
+
+#[derive(Clone)]
 pub struct Clock {
+    pub ty: ClockType,
     pub path: Path,
 }
 
@@ -88,19 +92,20 @@ impl Ctxt {
     }
 
     // returns a value from 0 to 1, representing how full the clock should be.
-    pub fn clock_value(&self, path: &Path) -> Option<f64> {
-        let (stage, start, end) = self.find_stage(path)?;
+    pub fn clock_value(&self, clock: &Clock) -> Option<f64> {
+        let (stage, start, end) = self.find_stage(&clock.path)?;
         let d = (self.t - start[T]) / (end[T] - start[T]);
 
         let mut sum = 0.0;
         for s in 0..stage {
-            sum += self.local_stage_duration(path, s);
+            sum += self.local_stage_duration(&clock.path, s);
         }
-        sum += self.local_stage_duration(path, stage) * d;
+        sum += self.local_stage_duration(&clock.path, stage) * d;
         let sum = sum * CLOCK_SPEED;
 
-        let clock = sum % 1.0;
-
-        Some(clock)
+        Some(match clock.ty {
+            ClockType::Once => sum.clamp(0.0, 0.5),
+            ClockType::Repeat => sum % 1.0,
+        })
     }
 }

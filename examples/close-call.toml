@@ -6,10 +6,10 @@ c = 50
 [[object]]
 color = "violet"
 path = [[-500, -4, 0], [-50, -4, 10], [-50, -4, 20]]
-clock = "yes"
+clock = "repeat"
 follow = "me"
 
 [[object]]
 color = "blue"
 path = [[0, 0, 0], [0, 0, 100]]
-clock = "yes"
+clock = "repeat"

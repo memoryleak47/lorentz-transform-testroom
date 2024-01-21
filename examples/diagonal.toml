@@ -1,14 +1,14 @@
-c = 200
+c = 160
 
 [[object]]
 color = "blue"
 path = [[0, 0, 0], [0, 0, 5]]
 clock = "repeat"
-follow = "me"
+follow = "me" # Consider looking at this scene from violets perspective! Just move this line to violet
 
 [[object]]
 color = "violet"
-path = [[-400, 0, 0], [400, 0, 5]]
+path = [[-200, -200, 0], [200, 200, 5]]
 clock = "repeat"
 
 # background grid:

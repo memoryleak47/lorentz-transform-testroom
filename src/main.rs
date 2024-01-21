@@ -1,3 +1,5 @@
+use std::time::Instant;
+
 mod config;
 use config::*;
 
@@ -25,6 +27,9 @@ impl Ctxt {
     }
 
     fn tick(&mut self) -> Option<()> {
+        let elapsed = self.last_instant.elapsed();
+        self.last_instant = Instant::now();
+
         // consider switching stages.
         while self.main_to_observer(self.follow_path[self.stage+1])[T] < self.t {
             if self.follow_path.get(self.stage+2).is_none() {
@@ -40,7 +45,7 @@ impl Ctxt {
 
         self.graphics.draw(focus, pixels);
 
-        self.t += self.tick_delta;
+        self.t += elapsed.as_millis() as f64 * TICK_SPEED;
 
         Some(())
     }

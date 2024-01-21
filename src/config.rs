@@ -8,8 +8,6 @@ use std::io::Read;
 #[derive(Serialize, Deserialize)]
 pub struct Config {
     pub c: f64,
-    pub tick_delta: f64,
-    pub clock_speed: Option<f64>,
     pub object: Vec<ConfigObject>,
 }
 
@@ -72,7 +70,7 @@ impl Config {
             }
         }
 
-        Ctxt::new(follow_path.unwrap(), pixel_objects, clocks, self.c, self.tick_delta, self.clock_speed)
+        Ctxt::new(follow_path.unwrap(), pixel_objects, clocks, self.c)
     }
 }
 

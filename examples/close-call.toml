@@ -2,7 +2,6 @@
 # Depending on the object you chose to follow, violet and blue sometimes collided and sometimes not.
 
 c = 50
-tick_delta = 0.05
 
 [[object]]
 color = "violet"

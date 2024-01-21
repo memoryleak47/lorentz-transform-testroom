@@ -1,5 +1,4 @@
 c = 450
-tick_delta = 0.01
 
 [[object]]
 color = "blue"

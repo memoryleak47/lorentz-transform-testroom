@@ -1,12 +1,14 @@
 use crate::*;
 
+pub const TICK_SPEED: f64 = 0.0005;
+pub const CLOCK_SPEED: f64 = 0.1;
+
 pub struct Ctxt {
     pub follow_path: Path,
     pub pixel_objects: Vec<PixelObject>,
     pub clocks: Vec<Clock>,
     pub c: f64,
-    pub tick_delta: f64,
-    pub clock_speed: f64,
+    pub last_instant: Instant,
 
     pub stage: usize,
     pub t: f64, // current time in the observer_frame.
@@ -26,14 +28,13 @@ pub struct Clock {
 }
 
 impl Ctxt {
-    pub fn new(follow_path: Path, pixel_objects: Vec<PixelObject>, clocks: Vec<Clock>, c: f64, tick_delta: f64, clock_speed: Option<f64>) -> Self {
+    pub fn new(follow_path: Path, pixel_objects: Vec<PixelObject>, clocks: Vec<Clock>, c: f64) -> Self {
         let mut ctxt = Ctxt {
             follow_path,
             pixel_objects,
             clocks,
             c,
-            tick_delta,
-            clock_speed: clock_speed.unwrap_or(0.05),
+            last_instant: Instant::now(),
 
             stage: 0,
             t: 0.0, // will be set correctly in set_stage.
@@ -96,7 +97,7 @@ impl Ctxt {
             sum += self.local_stage_duration(path, s);
         }
         sum += self.local_stage_duration(path, stage) * d;
-        let sum = sum * self.clock_speed;
+        let sum = sum * CLOCK_SPEED;
 
         let clock = sum % 1.0;
 

@@ -61,22 +61,44 @@ impl Ctxt {
     }
 
     fn draw_clocks(&self) -> Vec<Pixel> {
+        fn clock_color(x: f64, y: f64, val: f64) -> bool {
+            // adds frame around the clock.
+            if x*x + y*y > 8.5 * 8.5 { return true; }
+
+            // in [0, 2*pi]
+            let angle = (-x).atan2(y) + std::f64::consts::PI;
+
+            if val >= 0.5 {
+                // in [0, 2*pi]
+                let pi_val = (val - 0.5) * 4.0 * std::f64::consts::PI;
+
+                angle < pi_val
+            } else {
+                // in [0, 2*pi]
+                let pi_val = val * 4.0 * std::f64::consts::PI;
+
+                angle > pi_val
+            }
+        }
+
         let mut pixels = Vec::new();
         for cl in &self.clocks {
             if let Some(pos) = self.current_pos(&cl.path) {
                 let clock_val = self.clock_value(&cl.path).unwrap();
                 for x in -10..=10 {
                     for y in -10..=10 {
-                        let mut color = 0x333333;
-                        // in [0, 1]
-                        let yval = 1.0 - (y as f64 + 10.0) / 20.0;
+                        let (x, y) = (x as f64, y as f64);
 
-                        if yval < clock_val {
-                            color = 0xdddddd;
-                        }
+                        // this check makes the clock round.
+                        if x*x + y*y > 10.0 * 10.0 { continue; }
+
+                        let color = match clock_color(x, y, clock_val) {
+                            true => 0x333333,
+                            false => 0xdddddd,
+                        };
 
                         let px = Pixel {
-                            pos: [pos[X] + x as f64, pos[Y] + y as f64],
+                            pos: [pos[X] + x, pos[Y] + y],
                             color,
                         };
                         pixels.push(px);

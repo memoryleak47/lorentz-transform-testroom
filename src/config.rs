@@ -18,7 +18,7 @@ pub struct ConfigObject {
     pub follow: Option<String>,
     pub clock: Option<String>,
     pub color: String,
-    pub path: Vec<Event>,
+    pub path: Path,
 }
 
 impl Config {
@@ -39,7 +39,7 @@ impl Config {
         // generate pixel_objects:
         let mut pixel_objects = Vec::new();
 
-        let mut follow_obj: Option<PixelObject> = None;
+        let mut follow_path: Option<Path> = None;
 
         const R: i32 = 20;
         for obj in &self.object {
@@ -48,8 +48,8 @@ impl Config {
                     let px = mk_pixel_object(obj, x, y, self.c);
 
                     if x == 0 && y == 0 && obj.follow.is_some() {
-                        assert!(follow_obj.is_none());
-                        follow_obj = Some(px.clone());
+                        assert!(follow_path.is_none());
+                        follow_path = Some(px.path.clone());
                     }
 
                     pixel_objects.push(px);
@@ -60,28 +60,13 @@ impl Config {
         // faster than c check!
         for pobj in &pixel_objects {
             for stage in 0..pobj.path.len()-1 {
-                let v = Ctxt::calc_frame(&pobj.path, stage).velocity;
+                let v = calc_frame(&pobj.path, stage).velocity;
                 let len = (v[0] * v[0] + v[1] * v[1]).sqrt();
                 assert!(len < self.c, "You cannot move faster than c!");
             }
         }
 
-        // putting it together.
-        let mut ctxt = Ctxt {
-            follow_obj: follow_obj.unwrap(),
-            pixel_objects,
-            tick_delta: self.tick_delta,
-            c: self.c,
-            stage: 0,
-            t: 0.0, // will be set correctly in set_stage.
-            observer_frame: Frame::main(), // will be set correctly in set_stage.
-            graphics: Graphics::new(),
-        };
-
-        // setup initial stage
-        ctxt.set_stage(0);
-
-        ctxt
+        Ctxt::new(follow_path.unwrap(), pixel_objects, self.c, self.tick_delta)
     }
 }
 

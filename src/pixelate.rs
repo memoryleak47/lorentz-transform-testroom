@@ -8,20 +8,20 @@ pub fn mk_pixel_object(object: &ConfigObject, x: i32, y: i32, c: f64) -> PixelOb
     let mut path = Vec::new();
 
     // start event
-    let start_frame = Ctxt::calc_frame(&object.path, 0);
+    let start_frame = calc_frame(&object.path, 0);
     let start_ev = *object.path.first().unwrap();
     path.push(simultaneous_event(start_frame, start_ev, x, y, c));
 
     // transition events
     for i in 0..object.path.len() - 2 {
-        let f1 = Ctxt::calc_frame(&object.path, i);
-        let f2 = Ctxt::calc_frame(&object.path, i+1);
+        let f1 = calc_frame(&object.path, i);
+        let f2 = calc_frame(&object.path, i+1);
         let ev = object.path[i+1];
         path.push(transition_event(f1, f2, ev, x, y, c));
     }
 
     // end event
-    let end_frame = Ctxt::calc_frame(&object.path, object.path.len() - 2);
+    let end_frame = calc_frame(&object.path, object.path.len() - 2);
     let end_ev = *object.path.last().unwrap();
     path.push(simultaneous_event(end_frame, end_ev, x, y, c));
 

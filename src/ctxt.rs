@@ -1,7 +1,15 @@
 use crate::*;
 
-pub const TICK_SPEED: f64 = 0.0005;
+// one second IRL represents one second in the toml file.
+// This is a good default, I should only change it temporarily for testing.
+pub const TICK_SPEED: f64 = 1.0;
+
+// 10 seconds represent a full "double rotation" of the clock. Hence 5s for the single rotation.
 pub const CLOCK_SPEED: f64 = 0.1;
+
+// given in pixels:
+pub const OBJECT_RADIUS: i32 = 20;
+pub const CLOCK_RADIUS: i32 = 10;
 
 pub struct Ctxt {
     pub follow_path: Path,

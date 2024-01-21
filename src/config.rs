@@ -41,7 +41,6 @@ impl Config {
 
         let mut follow_path: Option<Path> = None;
 
-        const R: i32 = 20;
         for obj in &self.object {
             if let Some(s) = obj.clock.as_deref() {
                 let ty = match s {
@@ -52,8 +51,8 @@ impl Config {
                 clocks.push(Clock { ty, path: obj.path.clone() });
             }
 
-            for y in -R..=R {
-                for x in -R..=R {
+            for y in -OBJECT_RADIUS..=OBJECT_RADIUS {
+                for x in -OBJECT_RADIUS..=OBJECT_RADIUS {
                     let px = mk_pixel_object(obj, x, y, self.c);
 
                     if x == 0 && y == 0 && obj.follow.is_some() {

@@ -45,7 +45,8 @@ impl Ctxt {
 
         self.graphics.draw(focus, pixels);
 
-        self.t += elapsed.as_millis() as f64 * TICK_SPEED;
+        let seconds = elapsed.as_micros() as f64 / 1000.0 / 1000.0;
+        self.t += seconds * TICK_SPEED;
 
         Some(())
     }
@@ -68,7 +69,8 @@ impl Ctxt {
     fn draw_clocks(&self) -> Vec<Pixel> {
         fn clock_color(x: f64, y: f64, val: f64) -> bool {
             // adds frame around the clock.
-            if x*x + y*y > 8.5 * 8.5 { return true; }
+            const F: f64 = 0.85 * (CLOCK_RADIUS as f64);
+            if x*x + y*y > F*F { return true; }
 
             // in [0, 2*pi]
             let angle = (-x).atan2(y) + std::f64::consts::PI;
@@ -90,12 +92,12 @@ impl Ctxt {
         for cl in &self.clocks {
             if let Some(pos) = self.current_pos(&cl.path) {
                 let clock_val = self.clock_value(&cl).unwrap();
-                for x in -10..=10 {
-                    for y in -10..=10 {
+                for x in -CLOCK_RADIUS..=CLOCK_RADIUS {
+                    for y in -CLOCK_RADIUS..=CLOCK_RADIUS {
                         let (x, y) = (x as f64, y as f64);
 
                         // this check makes the clock round.
-                        if x*x + y*y > 10.0 * 10.0 { continue; }
+                        if x*x + y*y > (CLOCK_RADIUS * CLOCK_RADIUS) as f64 { continue; }
 
                         let color = match clock_color(x, y, clock_val) {
                             true => 0x333333,

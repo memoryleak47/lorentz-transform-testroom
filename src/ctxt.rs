@@ -33,7 +33,7 @@ impl Ctxt {
             clocks,
             c,
             tick_delta,
-            clock_speed: clock_speed.unwrap_or(1.0),
+            clock_speed: clock_speed.unwrap_or(0.05),
 
             stage: 0,
             t: 0.0, // will be set correctly in set_stage.

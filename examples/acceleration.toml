@@ -1,10 +1,17 @@
 c = 106
 
-[[object]]
-color = "green"
-path = [[0, -50, 0], [0, -50, 100]]
-follow = "me"
-
+# Consider this accelerated object:
 [[object]]
 color = "red"
 path = [[0, 0, 0], [0, 0, 1], [300, 0, 4], [300, 0, 10]]
+
+
+# ... as seen from these observers:
+[[object]]
+color = "green"
+path = [[0, -100, 0], [0, -100, 100]]
+follow = "me" # move this line to the blue object, to see it from blues perspective.
+
+[[object]]
+color = "blue"
+path = [[0, 100, 0], [2400, 100, 24]]

@@ -75,17 +75,10 @@ impl Ctxt {
             // in [0, 2*pi]
             let angle = (-x).atan2(y) + std::f64::consts::PI;
 
-            if val >= 0.5 {
-                // in [0, 2*pi]
-                let pi_val = (val - 0.5) * 4.0 * std::f64::consts::PI;
+            // in [0, 2*pi]
+            let pi_val = val * 2.0 * std::f64::consts::PI;
 
-                angle < pi_val
-            } else {
-                // in [0, 2*pi]
-                let pi_val = val * 4.0 * std::f64::consts::PI;
-
-                angle > pi_val
-            }
+            angle > pi_val
         }
 
         let mut pixels = Vec::new();

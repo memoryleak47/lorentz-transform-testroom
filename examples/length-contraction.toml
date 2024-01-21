@@ -1,14 +1,14 @@
-c = 450
+c = 200
 
 [[object]]
 color = "blue"
-path = [[0, 0, 0], [0, 0, 1]]
-follow = "me"
+path = [[0, 0, 0], [0, 0, 5]]
 clock = "repeat"
+follow = "me"
 
 [[object]]
 color = "violet"
-path = [[0, 0, 0], [400, 0, 1]]
+path = [[-400, 0, 0], [400, 0, 5]]
 clock = "repeat"
 
 # background grid:

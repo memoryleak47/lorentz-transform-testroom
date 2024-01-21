@@ -1,15 +1,17 @@
 # In an earlier version of this tool, this behaved faulty.
 # Depending on the object you chose to follow, violet and blue sometimes collided and sometimes not.
 
-c = 50
+c = 60
 
 [[object]]
 color = "violet"
-path = [[-500, -4, 0], [-50, -4, 10], [-50, -4, 20]]
-clock = "repeat"
-follow = "me"
+path = [[-220, 0, 0], [-70, 0, 3], [-70, 0, 6]]
 
 [[object]]
 color = "blue"
 path = [[0, 0, 0], [0, 0, 100]]
-clock = "repeat"
+follow = "me"
+
+[[object]]
+color = "green"
+path = [[-220, 100, 0], [280, 100, 10]]

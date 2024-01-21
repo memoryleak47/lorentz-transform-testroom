@@ -4,12 +4,12 @@ use crate::*;
 // This is a good default, I should only change it temporarily for testing.
 pub const TICK_SPEED: f64 = 1.0;
 
-// 10 seconds represent a full "double rotation" of the clock. Hence 5s for the single rotation.
+// 10 seconds represent a full rotation of the clock.
 pub const CLOCK_SPEED: f64 = 0.1;
 
 // given in pixels:
-pub const OBJECT_RADIUS: i32 = 20;
-pub const CLOCK_RADIUS: i32 = 10;
+pub const OBJECT_RADIUS: i32 = 30;
+pub const CLOCK_RADIUS: i32 = 20;
 
 pub struct Ctxt {
     pub follow_path: Path,
@@ -112,7 +112,7 @@ impl Ctxt {
         let sum = sum * CLOCK_SPEED;
 
         Some(match clock.ty {
-            ClockType::Once => sum.clamp(0.0, 0.5),
+            ClockType::Once => sum.clamp(0.0, 1.0),
             ClockType::Repeat => sum % 1.0,
         })
     }

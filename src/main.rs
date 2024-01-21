@@ -7,6 +7,9 @@ use lorentz::*;
 mod graphics;
 use graphics::*;
 
+mod pixelate;
+use pixelate::*;
+
 struct Ctxt {
     follow_obj: PixelObject,
     pixel_objects: Vec<PixelObject>,

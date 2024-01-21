@@ -9,6 +9,7 @@ use std::io::Read;
 pub struct Config {
     pub c: f64,
     pub tick_delta: f64,
+    pub clock_speed: Option<f64>,
     pub object: Vec<ConfigObject>,
 }
 
@@ -38,11 +39,16 @@ impl Config {
     pub fn to_ctxt(self) -> Ctxt {
         // generate pixel_objects:
         let mut pixel_objects = Vec::new();
+        let mut clocks = Vec::new();
 
         let mut follow_path: Option<Path> = None;
 
         const R: i32 = 20;
         for obj in &self.object {
+            if obj.clock.is_some() {
+                clocks.push(Clock { path: obj.path.clone() });
+            }
+
             for y in -R..=R {
                 for x in -R..=R {
                     let px = mk_pixel_object(obj, x, y, self.c);
@@ -66,7 +72,7 @@ impl Config {
             }
         }
 
-        Ctxt::new(follow_path.unwrap(), pixel_objects, self.c, self.tick_delta)
+        Ctxt::new(follow_path.unwrap(), pixel_objects, clocks, self.c, self.tick_delta, self.clock_speed)
     }
 }
 

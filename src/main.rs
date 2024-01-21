@@ -35,6 +35,17 @@ impl Ctxt {
 
         let focus = self.current_pos(&self.follow_path).unwrap();
 
+        let mut pixels = self.draw_pixel_objects();
+        pixels.extend(self.draw_clocks());
+
+        self.graphics.draw(focus, pixels);
+
+        self.t += self.tick_delta;
+
+        Some(())
+    }
+
+    fn draw_pixel_objects(&self) -> Vec<Pixel> {
         let mut pixels = Vec::new();
         for pobj in &self.pixel_objects {
             if let Some(px) = self.current_pos(&pobj.path) {
@@ -46,12 +57,34 @@ impl Ctxt {
                 pixels.push(px);
             }
         }
+        pixels
+    }
 
-        self.graphics.draw(focus, pixels);
+    fn draw_clocks(&self) -> Vec<Pixel> {
+        let mut pixels = Vec::new();
+        for cl in &self.clocks {
+            if let Some(pos) = self.current_pos(&cl.path) {
+                let clock_val = self.clock_value(&cl.path).unwrap();
+                for x in -10..=10 {
+                    for y in -10..=10 {
+                        let mut color = 0x333333;
+                        // in [0, 1]
+                        let yval = 1.0 - (y as f64 + 10.0) / 20.0;
 
-        self.t += self.tick_delta;
+                        if yval < clock_val {
+                            color = 0xdddddd;
+                        }
 
-        Some(())
+                        let px = Pixel {
+                            pos: [pos[X] + x as f64, pos[Y] + y as f64],
+                            color,
+                        };
+                        pixels.push(px);
+                    }
+                }
+            }
+        }
+        pixels
     }
 }
 

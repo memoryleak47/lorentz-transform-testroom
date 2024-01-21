@@ -126,63 +126,39 @@ fn simultaneous_event(f: Frame, ev: Event, x: i32, y: i32, c: f64) -> Event {
 
 fn sqr(x: f64) -> f64 { x * x }
 
-fn dot(a: [f64; 2], b: [f64; 2]) -> f64 {
-    a[X] * b[X] + a[Y] * b[Y]
-}
-
-fn norm(a: [f64; 2]) -> f64 {
-    f64::sqrt(dot(a, a))
-}
-
-fn normalized(a: [f64; 2]) -> [f64; 2] {
-    let n = norm(a);
-    if n == 0.0 { return [0.0, 0.0]; }
-    [a[X] / n, a[Y] / n]
-}
-
-// the velocity that an object resting in f2 would have from an observer in f1.
-// https://en.wikipedia.org/wiki/Relative_velocity#General_case
-fn relative_velocity(f1: Frame, f2: Frame, c: f64) -> [f64; 2] {
-    let va = f1.velocity;
-    let vb = f2.velocity;
-
-    let va_norm = norm(va);
-
-    let gamma_a = 1.0 / f64::sqrt(1.0 - sqr(va_norm / c));
-
-    let factor = 1.0 / (gamma_a * (1.0 - (dot(va, vb)/sqr(c))));
-    let mut div = dot(va, vb);
-    if div != 0.0 { div /= sqr(va_norm); }
-    
-    let rfactor = (gamma_a - 1.0) * (div - 1.0);
-
-    [factor * (vb[X] - va[X] + va[X] * rfactor),
-     factor * (vb[Y] - va[Y] + va[Y] * rfactor)]
-}
-
-// L = L0 * sqrt(1-v^2/c^2) as seen in https://en.wikipedia.org/wiki/Length_contraction
-// is a number in ]0, 1]
-fn contraction_factor(v_norm: f64, c: f64) -> f64 {
-    f64::sqrt(1.0 - sqr(v_norm/c))
-}
-
 fn transition_event(f1: Frame, f2: Frame, ev: Event, x: i32, y: i32, c: f64) -> Event {
-    // the velocity of f2 as measured from frame f1.
-    let rel_v = relative_velocity(f1, f2, c);
+    let ev1 = f1.from_other_frame(Frame::main(), ev, Some(c));
+    let ev1 = [ev1[X] + x as f64, ev1[Y] + y as f64, ev1[T]];
 
-    // If the observer stays in frame f1, by what factor would the object appear to be contracted when it is fully in f2:
-    let contraction_factor = contraction_factor(norm(rel_v), c);
+    let ev2 = f2.from_other_frame(Frame::main(), ev, Some(c));
+    let ev2 = [ev2[X] + x as f64, ev2[Y] + y as f64, ev2[T]];
 
-    // TODO: is this right? This only makes "intuitive" sense. but the units don't make sense :/
-    let xy = [x as f64, y as f64];
-    let directed_contraction_factor = dot(normalized(rel_v), xy) / contraction_factor;
+    let mut delta_t = 0.0;
 
-    // the delay (as seen from f1) with which this pixel does the stage transition (delay relative to the x=0, y=0 pixel).
-    let delta_t: f64 = 1.0 / contraction_factor;
-    assert!(!delta_t.is_nan());
+    if f1.velocity != f2.velocity {
+        // we want to minimize t_dist.
+        let t_dist = |t| {
+            let ev1_plus_t = [ev1[X], ev1[Y], ev1[T] + t];
+            let ev2_ = f2.from_other_frame(f1, ev1_plus_t, Some(c));
 
-    let ev = f1.from_other_frame(Frame::main(), ev, Some(c));
-    let ev = [ev[X] + x as f64, ev[Y] + y as f64, ev[T] + delta_t];
-    let ev = Frame::main().from_other_frame(f1, ev, Some(c));
-    ev
+            sqr(ev2_[X] - ev2[X]) + sqr(ev2_[Y] - ev2[Y])
+        };
+
+        let mut min = -10000.0;
+        let mut max = 10000.0;
+
+        for _ in 0..100 {
+            let center = (min + max)/2.0;
+            if t_dist(min) < t_dist(max) {
+                max = center;
+            } else {
+                min = center;
+            }
+        }
+
+        delta_t = min;
+    }
+
+    let ev1_plus_t = [ev1[X], ev1[Y], ev1[T] + delta_t];
+    Frame::main().from_other_frame(f1, ev1_plus_t, Some(c))
 }

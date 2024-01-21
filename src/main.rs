@@ -69,7 +69,7 @@ impl Ctxt {
     fn draw_clocks(&self) -> Vec<Pixel> {
         fn clock_color(x: f64, y: f64, val: f64) -> bool {
             // adds frame around the clock.
-            const F: f64 = 0.85 * (CLOCK_RADIUS as f64);
+            const F: f64 = 0.80 * (CLOCK_RADIUS as f64);
             if x*x + y*y > F*F { return true; }
 
             // in [0, 2*pi]
@@ -101,7 +101,7 @@ impl Ctxt {
 
                         let color = match clock_color(x, y, clock_val) {
                             true => 0x333333,
-                            false => 0xdddddd,
+                            false => 0xffffff,
                         };
 
                         let px = Pixel {

@@ -1,6 +1,5 @@
 c = 25
 tick_delta = 0.05
-max_clock = 30.0
 
 [[object]]
 color = "blue"

@@ -1,6 +1,5 @@
 c = 106
 tick_delta = 0.01
-max_clock = 30.0
 
 [[object]]
 color = "green"

@@ -9,7 +9,6 @@ use std::io::Read;
 pub struct Config {
     pub c: f64,
     pub tick_delta: f64,
-    pub max_clock: f64,
     pub object: Vec<ConfigObject>,
 }
 

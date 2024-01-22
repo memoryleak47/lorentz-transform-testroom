@@ -1,0 +1,29 @@
+c = 220
+
+[[object]]
+color = "blue"
+path = [[0, 0, 0], [0, 0, 50]]
+clock = "repeat"
+follow = "me" # Consider looking at this scene from violets perspective! Just move this line to violet
+
+[[object]]
+color = "violet"
+path = [[-200, 0, 0], [0, 0, 1], [50, 70, 2], [200, 0, 3], [170, -20, 4], [320, -100, 5], [320, -100, 6], [120, -100, 7]]
+
+# background grid:
+
+[[object]]
+color = "green"
+path = [[-200, -200, -200], [-200, -200, 200]]
+
+[[object]]
+color = "green"
+path = [[200, 200, -200], [200, 200, 200]]
+
+[[object]]
+color = "green"
+path = [[-200, 200, -200], [-200, 200, 200]]
+
+[[object]]
+color = "green"
+path = [[200, -200, -200], [200, -200, 200]]
